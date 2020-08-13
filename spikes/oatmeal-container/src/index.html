@@ -3,6 +3,8 @@
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://cdn.rawgit.com/donmccurdy/aframe-physics-system/v4.0.1/dist/aframe-physics-system.min.js"></script>
     <script src="components/ingredient.js"></script>
+    <script src="components/grabbable.js"></script>
+    <script src="components/grabbing.js"></script>
     <script src="entities/o-container.js"></script>
     <script src="entities/o-item.js"></script>
   </head>
@@ -10,11 +12,19 @@
     <a-scene physics="debug:true">
       <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fcde9f" static-body></a-plane>
       <o-container position="0 0.75 -0.4" static-body></o-container>
-      <o-item position="0.4 1.0 -0.4" type="apple" dynamic-body></o-item>
+      <o-item grabbable position="0.4 1.0 -0.4" type="apple" dynamic-body></o-item>
       <a-box width="0.25" height="0.05" depth="0.25" position="0.4 0.975 -0.4" color="gray" static-body></a-box>
 
-      <a-entity id="leftHand" hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"></a-entity>
-      <a-entity id="rightHand" hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"></a-entity>
+      <a-entity
+        id="leftHand"
+        hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+        grabbing
+      ></a-entity>
+      <a-entity
+        id="rightHand"
+        hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+        grabbing
+      ></a-entity>
     </a-scene>
   </body>
 </html>
