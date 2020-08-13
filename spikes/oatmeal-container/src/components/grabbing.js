@@ -1,6 +1,6 @@
 AFRAME.registerComponent('grabbing', {
   schema: {
-    threshold: {default: 0.05}
+    threshold: {default: 0.1}
   },
   init: function () {
     this.lastPosition = new AFRAME.THREE.Vector3()
@@ -17,6 +17,7 @@ AFRAME.registerComponent('grabbing', {
   tick: function (uptime, delta) {
     if(this.currentItem) {
       this.el.object3D.getWorldPosition(this.currentItem.object3D.position)
+      this.el.object3D.getWorldQuaternion(this.currentItem.object3D.quaternion)
       this.velocity.copy(
         this.el.object3D.position.clone()
           .sub(this.lastPosition)
@@ -35,16 +36,22 @@ AFRAME.registerComponent('grabbing', {
   grabItem: function(event) {
     const closestGrabbable = this.getClosestGrabbable(event.target)
     if(closestGrabbable) {
-      console.log('Attempting to grab item', closestGrabbable)
       this.currentItem = closestGrabbable
       this.currentItem.removeAttribute('dynamic-body')
     }
   },
   dropItem: function(event) {
-    console.log('Attempting to drop item', event)
     if(this.currentItem) {
       this.currentItem.setAttribute('dynamic-body', "")
-      this.currentItem.body.applyLocalImpulse(this.velocity.multiplyScalar(20), new CANNON.Vec3(0, 0, 0));
+      this.velocity
+        .applyQuaternion(
+          this.currentItem.object3D.quaternion.clone().inverse()
+        )
+        .multiplyScalar(10)
+      this.currentItem.body.applyLocalImpulse(
+        this.velocity,
+        new CANNON.Vec3(0, 0, 0)
+      )
       this.currentItem = undefined
     }
   },
