@@ -21,13 +21,18 @@ const ingredients = {
     el.setAttribute('material', {
       color: 'red'
     })
+
+    el.ingredient = {
+      type: 'apple',
+      value: 1
+    }
   }
 }
 
 function setupIngredient(el, type) {
-  const ingredient = ingredients[type]
+  const setupFn = ingredients[type]
 
-  if(ingredient && ingredient instanceof Function) {
-    ingredient(el)
+  if(setupFn && setupFn instanceof Function) {
+    setupFn(el)
   }
 }
