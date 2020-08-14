@@ -11,6 +11,7 @@
     <a-scene physics="debug:true">
       <a-assets>
         <a-asset-item id="pot" src="../assets/pot_v1.1.glb"></a-asset-item>
+        <audio id="splat" src="../assets/splat_12.ogg"></audio>
       </a-assets>
       <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fcde9f" static-body></a-plane>
       <a-entity position="0 0.75 -0.4">
@@ -26,6 +27,7 @@
             height="0.3"
             segments-radial="16"
             color="#d3bc94"
+            sound="src: #splat; on: collide"
           ></a-cylinder>
       </a-entity>
 
