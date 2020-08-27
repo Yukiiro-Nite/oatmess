@@ -8,8 +8,14 @@
   <body>
     <a-scene physics="debug:true" networked-player>
       <a-assets>
+        <a-asset-item id="joinRoom" src="../assets/joinRoomButton.glb"></a-asset-item>
+        <a-asset-item id="createRoom" src="../assets/createRoomButton.glb"></a-asset-item>
       </a-assets>
-      <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fcde9f" static-body></a-plane>
+      <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fed6c1" static-body></a-plane>
+      <a-plane width="0.5" height="0.56" rotation="-45 0 0" material="color:#807e84" position="0 1.0 -0.4">
+        <a-entity gltf-model="#joinRoom" rotation="90 0 0" position="0 -0.13 0" scale="0.15 0.15 0.15"></a-entity>
+        <a-entity gltf-model="#createRoom" rotation="90 0 0" position="0 0.13 0" scale="0.15 0.15 0.15"></a-entity>
+      </a-plane>
 
       <a-entity
         id="leftHand"
