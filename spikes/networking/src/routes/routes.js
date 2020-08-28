@@ -18,7 +18,7 @@ exports.config = {
   routes: {
     get: {
       '/socket.io.js': (req, res) => {
-        const path = Path.resolve(__dirname, '../../node_modules/socket.io-client/dist/socket.io.js');
+        const path = Path.resolve(process.cwd(), './node_modules/socket.io-client/dist/socket.io.js');
         res.sendFile(path);
       },
     }
@@ -27,6 +27,10 @@ exports.config = {
     connection(io, socket) {
       const id = socket.id
       log(`connection from ${id}`)
+    },
+    logMessage(io, socket, msg) {
+      const id = socket.id
+      log(`[${id}] ${msg}`)
     },
     joinRoom(io, socket, msg) {
       const id = socket.id
