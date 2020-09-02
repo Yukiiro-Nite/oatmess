@@ -104,5 +104,5 @@ function generateId() {
     last = next
   }
 
-  return last.toString(16)
+  return last.toString(16).toUpperCase()
 }

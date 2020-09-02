@@ -8,5 +8,6 @@ const buttonActions = {
     console.log('Create Room Pressed')
     const socket = event.target.sceneEl.systems['networked-player'].socket
     socket.emit('logMessage', 'Create Room Event')
-  }
+  },
+  press_0: () => {console.log('Pressed 0!')}
 }

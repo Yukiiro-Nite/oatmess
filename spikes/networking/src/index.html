@@ -2,19 +2,50 @@
   <head>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://cdn.rawgit.com/donmccurdy/aframe-physics-system/v4.0.1/dist/aframe-physics-system.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
     <script src="/socket.io.js"></script>
+    <script src="utils.js"></script>
     <script src="components/networked-player.js"></script>
     <script src="components/buttonActions.js"></script>
     <script src="components/button.js"></script>
+    <script src="components/input-panel.js"></script>
+    <script src="components/grid.js"></script>
+    <script src="components/poke.js"></script>
+    <script src="components/hex-input.js"></script>
   </head>
   <body>
     <a-scene physics="debug:true" networked-player>
       <a-assets>
         <a-asset-item id="joinRoom" src="../assets/joinRoomButton.glb"></a-asset-item>
         <a-asset-item id="createRoom" src="../assets/createRoomButton.glb"></a-asset-item>
+        <a-asset-item id="buttonFrame" src="../assets/buttonFrame.glb"></a-asset-item>
+        <a-asset-item id="button_0" src="../assets/button_0.glb"></a-asset-item>
+        <a-asset-item id="button_1" src="../assets/button_1.glb"></a-asset-item>
+        <a-asset-item id="button_2" src="../assets/button_2.glb"></a-asset-item>
+        <a-asset-item id="button_3" src="../assets/button_3.glb"></a-asset-item>
+        <a-asset-item id="button_4" src="../assets/button_4.glb"></a-asset-item>
+        <a-asset-item id="button_5" src="../assets/button_5.glb"></a-asset-item>
+        <a-asset-item id="button_6" src="../assets/button_6.glb"></a-asset-item>
+        <a-asset-item id="button_7" src="../assets/button_7.glb"></a-asset-item>
+        <a-asset-item id="button_8" src="../assets/button_8.glb"></a-asset-item>
+        <a-asset-item id="button_9" src="../assets/button_9.glb"></a-asset-item>
+        <a-asset-item id="button_A" src="../assets/button_A.glb"></a-asset-item>
+        <a-asset-item id="button_B" src="../assets/button_B.glb"></a-asset-item>
+        <a-asset-item id="button_C" src="../assets/button_C.glb"></a-asset-item>
+        <a-asset-item id="button_D" src="../assets/button_D.glb"></a-asset-item>
+        <a-asset-item id="button_E" src="../assets/button_E.glb"></a-asset-item>
+        <a-asset-item id="button_F" src="../assets/button_F.glb"></a-asset-item>
+        <audio id="press" src="../assets/press.wav"></audio>
+
+        <a-mixin
+          id="buttonStyle"
+          sound="src: #press; on: pressed; volume: 0.05;"
+          animation__press="property: object3D.position.y; from: 0; to: -0.1; dur: 200; startEvents: pressed;"
+          animation__buttonup="property: object3D.position.y; from: -0.1; to: 0; dur: 200; startEvents: animationcomplete__press;"
+        ></a-mixin>
       </a-assets>
       <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fed6c1" static-body></a-plane>
-      <a-box
+      <!-- <a-box
         id="roomPanel"
         width="0.96"
         height="0.33"
@@ -25,7 +56,7 @@
         static-body
       ></a-box>
 
-      <!-- width: 0.39, height: 0.21, depth: 0.06 -->
+      width: 0.39, height: 0.21, depth: 0.06
       <a-entity
         gltf-model="#joinRoom"
         scale="0.15 0.15 0.15"
@@ -43,17 +74,23 @@
         constraint="target: #roomPanel"
         button
         action="createRoom"
-      ></a-entity>
+      ></a-entity> -->
+
+      <a-hex-input
+        scale="0.02 0.02 0.02"
+        position="0 1.0 -0.2"
+        rotation="45 0 0"
+      ></a-hex-input>
 
       <a-entity
         id="leftHand"
         hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
-        static-body="shape: sphere; sphereRadius: 0.1;"
+        poke="hand: left"
       ></a-entity>
       <a-entity
         id="rightHand"
         hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
-        static-body="shape: sphere; sphereRadius: 0.1;"
+        poke="hand: right"
       ></a-entity>
     </a-scene>
   </body>
