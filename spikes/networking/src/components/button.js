@@ -22,7 +22,7 @@ AFRAME.registerComponent('button', {
       { leading: true, trailing: false }
     )
 
-    this.frameId = generateId()
+    this.frameId = `frame-${generateId()}`
     this.frame = this.createFrame()
     this.button = this.createButton()
     
@@ -60,7 +60,7 @@ AFRAME.registerComponent('button', {
   createFrame: function () {
     return htmlToElement(`
       <a-entity
-        id=${this.frameId}
+        id="${this.frameId}"
         gltf-model="${this.data.frameModel}"
       ></a-entity
     `)

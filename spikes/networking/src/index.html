@@ -12,12 +12,21 @@
     <script src="components/grid.js"></script>
     <script src="components/poke.js"></script>
     <script src="components/hex-input.js"></script>
+    <script src="components/join-room.js"></script>
+    <script src="components/output.js"></script>
   </head>
   <body>
     <a-scene physics="debug:true" networked-player>
       <a-assets>
         <a-asset-item id="joinRoom" src="../assets/joinRoomButton.glb"></a-asset-item>
         <a-asset-item id="createRoom" src="../assets/createRoomButton.glb"></a-asset-item>
+
+        <a-asset-item id="arrow" src="../assets/arrow.glb"></a-asset-item>
+        <a-asset-item id="clear" src="../assets/clear.glb"></a-asset-item>
+        <a-asset-item id="enter" src="../assets/enter.glb"></a-asset-item>
+        <a-asset-item id="home" src="../assets/home.glb"></a-asset-item>
+        <a-asset-item id="plus" src="../assets/plus.glb"></a-asset-item>
+
         <a-asset-item id="buttonFrame" src="../assets/buttonFrame.glb"></a-asset-item>
         <a-asset-item id="button_0" src="../assets/button_0.glb"></a-asset-item>
         <a-asset-item id="button_1" src="../assets/button_1.glb"></a-asset-item>
@@ -35,6 +44,7 @@
         <a-asset-item id="button_D" src="../assets/button_D.glb"></a-asset-item>
         <a-asset-item id="button_E" src="../assets/button_E.glb"></a-asset-item>
         <a-asset-item id="button_F" src="../assets/button_F.glb"></a-asset-item>
+
         <audio id="press" src="../assets/press.wav"></audio>
 
         <a-mixin
@@ -80,6 +90,7 @@
         scale="0.02 0.02 0.02"
         position="0 1.0 -0.2"
         rotation="45 0 0"
+        join-room="on: submit;"
       ></a-hex-input>
 
       <a-entity
