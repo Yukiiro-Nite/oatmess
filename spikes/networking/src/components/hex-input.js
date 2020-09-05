@@ -31,9 +31,9 @@ AFRAME.registerComponent('hex-input', {
         id="${this.outputId}"
         position="3 0 -2"
         output=""
-        grid="row: 1; gap: 0.5; cellWidth: 1.0; cellHeight: 1.0; center: true;"
+        grid="row: 1; gap: 0.5; cellWidth: 1.0; cellHeight: 1.0; hCenter: true;"
       >
-      </a-box>
+      </a-entity>
     `)
   },
   createInput: function() {

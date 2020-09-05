@@ -9,20 +9,39 @@
  */
 AFRAME.registerComponent('button', {
   schema: {
+    frameId: { type: 'string' },
     frameModel: { type: 'string' },
     buttonModel: { type: 'string' },
     value: { type: 'string' }
   },
   init: function () {
+    this.setupManualButton = AFRAME.utils.bind(this.setupManualButton, this)
+    this.setupCustomButton = AFRAME.utils.bind(this.setupCustomButton, this)
     this.createFrame = AFRAME.utils.bind(this.createFrame, this)
     this.createButton = AFRAME.utils.bind(this.createButton, this)
     this.handleCollision = _.debounce(
       AFRAME.utils.bind(this.handleCollision, this),
-      500,
+      200,
       { leading: true, trailing: false }
     )
+    this.frameId = this.data.frameId || `frame-${generateId()}`
 
-    this.frameId = `frame-${generateId()}`
+    if(this.data.frameModel && this.data.buttonModel) {
+      this.setupCustomButton()
+    } else {
+      this.setupManualButton()
+    }
+  },
+  update: function () {},
+  tick: function () {},
+  remove: function () {},
+  pause: function () {},
+  play: function () {},
+  setupManualButton: function() {
+    // dynamic body, static body frame, and constraint needs to be set up manually on the manual button
+    this.el.addEventListener('collide', this.handleCollision)
+  },
+  setupCustomButton: function() {
     this.frame = this.createFrame()
     this.button = this.createButton()
     
@@ -44,19 +63,14 @@ AFRAME.registerComponent('button', {
       this.button.setAttribute('dynamic-body', '')
       this.button.setAttribute('constraint', {
         target: `#${this.frameId}`,
-        type: 'lock'
+        type: 'lock',
+        collideConnected: false
       })
       this.button.addEventListener('collide', this.handleCollision)
     })
-    
 
     this.el.append(this.frame, this.button)
   },
-  update: function () {},
-  tick: function () {},
-  remove: function () {},
-  pause: function () {},
-  play: function () {},
   createFrame: function () {
     return htmlToElement(`
       <a-entity
@@ -78,6 +92,7 @@ AFRAME.registerComponent('button', {
     if(notFrame) {
       event.bubbles = true
       event.detail.value = this.data.value
+      this.el.value = this.data.value
       this.el.dispatchEvent(new CustomEvent('pressed', event))
     }
   }
