@@ -22,6 +22,7 @@ AFRAME.registerComponent('grid', {
   pause: function () {},
   play: function () {},
   updateGrid: function() {
+    console.log('Updating grid')
     const { col, row, gap, cellWidth, cellHeight } = this.data
     const columns = col || Math.floor(this.el.children.length / row)
     const rows = row || Math.floor(this.el.children.length / col)

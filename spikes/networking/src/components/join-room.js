@@ -13,9 +13,11 @@ AFRAME.registerComponent('join-room', {
   pause: function () {},
   play: function () {},
   handleJoin: function(event) {
+    const socket = this.el.sceneEl.systems['networked-player'].socket
     const roomId = event.target.value
 
     console.log('Got roomId: ', roomId)
+    socket.emit('joinRoom', { roomId })
 
     event.target.clear()
   }

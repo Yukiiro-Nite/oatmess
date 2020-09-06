@@ -36,20 +36,26 @@ exports.config = {
       const id = socket.id
       const roomId = msg.roomId
       const room = rooms[roomId]
+
       if(room && !room.isFull) {
         room.players[id] = {}
         room.isFull = Object.keys(room.players).length >= room.size
         socket.join(roomId)
         socket.to(roomId).emit('playerJoin', { id })
+        log(`[${id}] joined room ${roomId}`)
       } else if(room && room.isFull) {
         socket.emit('fullRoom', msg)
+        log(`[${id}] could not join room ${roomId}: room is full.`)
       } else {
         socket.emit('noRoom', msg)
+        log(`[${id}] could not join room ${roomId}: room does not exist.`)
       }
     },
     createRoom(io, socket, msg) {
       const id = socket.id
       const roomId = generateId()
+
+      log(`[${id}] created room ${roomId}`)
       
       rooms[roomId] = {
         players: {},

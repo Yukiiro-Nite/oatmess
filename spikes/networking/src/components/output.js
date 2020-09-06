@@ -13,7 +13,7 @@ AFRAME.registerComponent('output', {
 
       this.el.appendChild(el)
     })
-
+    console.log(`Output updated to: ${val}, updating grid.`)
     setTimeout(() => this.el.dispatchEvent(new CustomEvent('updateGrid', { bubbles: false })))
   },
   tick: function () {},
