@@ -1,99 +1,93 @@
-/**
- * The button component emits a click event when the user interacts with the element.
- * - for desktop and mobile, the button activates when the user presses the screen
- *   - can use raycast for this.
- * - for gaze based vr, a button activates when it is looked at
- * - for controller based vr, the button activates when the user presses the button.
- * 
- * I need to make a separate project for inputs...
- */
 AFRAME.registerComponent('button', {
   schema: {
-    frameId: { type: 'string' },
+    /** gltf model id to use as a frame for the button. */
     frameModel: { type: 'string' },
+    /** gltf model id to use as the button geometry. */
     buttonModel: { type: 'string' },
-    value: { type: 'string' }
+    /**
+     * Value of the button.
+     * Can be used in event listener via `event.target.value`
+     */
+    value: { type: 'string' },
+    /**
+     * Distance of ray intersection to be considered a press.
+     * defaults to 1cm
+     */
+    pressDistance: { type: 'number', default: 0.01 },
+    iconScale: { type: 'vec3', default: {x: 1, y: 1, z: 1}}
+  },
+  events: {
+    'raycaster-intersected': function (event) {
+      this.getIntersection = () => event.detail.getIntersection(this.el)
+      this.caster = event.detail.el
+    },
+    'raycaster-intersected-cleared': function (event) {
+      this.getIntersection = undefined
+      this.caster = undefined
+      this.pressed = false
+    },
   },
   init: function () {
-    this.setupManualButton = AFRAME.utils.bind(this.setupManualButton, this)
-    this.setupCustomButton = AFRAME.utils.bind(this.setupCustomButton, this)
+    this.el.value = this.data.value
+    this.pressed = false
     this.createFrame = AFRAME.utils.bind(this.createFrame, this)
     this.createButton = AFRAME.utils.bind(this.createButton, this)
-    this.handleCollision = _.debounce(
-      AFRAME.utils.bind(this.handleCollision, this),
-      200,
-      { leading: true, trailing: false }
-    )
-    this.frameId = this.data.frameId || `frame-${generateId()}`
+    this.emitPressStart = AFRAME.utils.bind(this.emitPressStart, this)
+    this.emitPressEnd = AFRAME.utils.bind(this.emitPressEnd, this)
 
-    if(this.data.frameModel && this.data.buttonModel) {
-      this.setupCustomButton()
-    } else {
-      this.setupManualButton()
+    if(this.data.frameModel) {
+      this.el.appendChild(this.createFrame())
+    }
+
+    if(this.data.buttonModel) {
+      this.el.appendChild(this.createButton())
     }
   },
-  update: function () {},
-  tick: function () {},
+  update: function () {
+    this.el.value = this.data.value
+  },
+  tick: function () {
+    // I should check to see if the user is in vr before I check this..
+    if(this.getIntersection && this.getIntersection instanceof Function) {
+      const dist = this.getIntersection().distance
+      if(dist <= this.data.pressDistance) {
+        this.emitPressStart()
+      } else {
+        this.emitPressEnd()
+      }
+    }
+  },
   remove: function () {},
   pause: function () {},
   play: function () {},
-  setupManualButton: function() {
-    // dynamic body, static body frame, and constraint needs to be set up manually on the manual button
-    this.el.addEventListener('collide', this.handleCollision)
-  },
-  setupCustomButton: function() {
-    this.frame = this.createFrame()
-    this.button = this.createButton()
-    
-    const frameReady = new Promise((resolve) => {
-      this.frame.addEventListener('model-loaded', function(event) {
-        event.target.removeEventListener('model-loaded', this)
-        resolve()
-      })
-    })
-    const buttonReady = new Promise((resolve) => {
-      this.button.addEventListener('model-loaded', function(event) {
-        event.target.removeEventListener('model-loaded', this)
-        resolve()
-      })
-    })
-    Promise.all([frameReady, buttonReady]).then(() => {
-      this.frame.setAttribute('static-body', '')
-
-      this.button.setAttribute('dynamic-body', '')
-      this.button.setAttribute('constraint', {
-        target: `#${this.frameId}`,
-        type: 'lock',
-        collideConnected: false
-      })
-      this.button.addEventListener('collide', this.handleCollision)
-    })
-
-    this.el.append(this.frame, this.button)
-  },
   createFrame: function () {
     return htmlToElement(`
       <a-entity
-        id="${this.frameId}"
         gltf-model="${this.data.frameModel}"
       ></a-entity
     `)
   },
   createButton: function() {
+    const height = this.el.getAttribute('height') || 0
+    const offset = height / 2.0
     return htmlToElement(`
       <a-entity
+        position="0 ${offset} 0"
+        scale="${AFRAME.utils.coordinates.stringify(this.data.iconScale)}"
         gltf-model="${this.data.buttonModel}"
       ></a-entity
     `)
   },
-  handleCollision: function(event) {
-    const notFrame = event.detail.body.el.getAttribute('id') !== this.frameId
-
-    if(notFrame) {
-      event.bubbles = true
-      event.detail.value = this.data.value
-      this.el.value = this.data.value
-      this.el.dispatchEvent(new CustomEvent('pressed', event))
+  emitPressStart: function () {
+    if(!this.pressed) {
+      this.pressed = true
+      this.caster.dispatchEvent(new CustomEvent('pressStart'))
+    }
+  },
+  emitPressEnd: function () {
+    if(this.pressed) {
+      this.pressed = false
+      this.caster.dispatchEvent(new CustomEvent('pressEnd'))
     }
   }
-});
+})

@@ -9,14 +9,17 @@
     <script src="components/button.js"></script>
     <script src="components/input-panel.js"></script>
     <script src="components/grid.js"></script>
-    <script src="components/poke.js"></script>
     <script src="components/hex-input.js"></script>
     <script src="components/join-room.js"></script>
     <script src="components/output.js"></script>
     <script src="components/room-panel.js"></script>
   </head>
   <body>
-    <a-scene physics="debug:true" networked-player>
+    <a-scene
+      cursor="rayOrigin: mouse"
+      raycaster="interval: 10; objects: [visible=true] [button]"
+      networked-player
+    >
       <a-assets>
         <a-asset-item id="joinRoom" src="../assets/joinRoomButton.glb"></a-asset-item>
         <a-asset-item id="createRoom" src="../assets/createRoomButton.glb"></a-asset-item>
@@ -28,49 +31,60 @@
         <a-asset-item id="plus" src="../assets/plus.glb"></a-asset-item>
 
         <a-asset-item id="buttonFrame" src="../assets/buttonFrame.glb"></a-asset-item>
-        <a-asset-item id="button_0" src="../assets/button_0.glb"></a-asset-item>
-        <a-asset-item id="button_1" src="../assets/button_1.glb"></a-asset-item>
-        <a-asset-item id="button_2" src="../assets/button_2.glb"></a-asset-item>
-        <a-asset-item id="button_3" src="../assets/button_3.glb"></a-asset-item>
-        <a-asset-item id="button_4" src="../assets/button_4.glb"></a-asset-item>
-        <a-asset-item id="button_5" src="../assets/button_5.glb"></a-asset-item>
-        <a-asset-item id="button_6" src="../assets/button_6.glb"></a-asset-item>
-        <a-asset-item id="button_7" src="../assets/button_7.glb"></a-asset-item>
-        <a-asset-item id="button_8" src="../assets/button_8.glb"></a-asset-item>
-        <a-asset-item id="button_9" src="../assets/button_9.glb"></a-asset-item>
-        <a-asset-item id="button_A" src="../assets/button_A.glb"></a-asset-item>
-        <a-asset-item id="button_B" src="../assets/button_B.glb"></a-asset-item>
-        <a-asset-item id="button_C" src="../assets/button_C.glb"></a-asset-item>
-        <a-asset-item id="button_D" src="../assets/button_D.glb"></a-asset-item>
-        <a-asset-item id="button_E" src="../assets/button_E.glb"></a-asset-item>
-        <a-asset-item id="button_F" src="../assets/button_F.glb"></a-asset-item>
+        <a-asset-item id="icon_0" src="../assets/icon_0.glb"></a-asset-item>
+        <a-asset-item id="icon_1" src="../assets/icon_1.glb"></a-asset-item>
+        <a-asset-item id="icon_2" src="../assets/icon_2.glb"></a-asset-item>
+        <a-asset-item id="icon_3" src="../assets/icon_3.glb"></a-asset-item>
+        <a-asset-item id="icon_4" src="../assets/icon_4.glb"></a-asset-item>
+        <a-asset-item id="icon_5" src="../assets/icon_5.glb"></a-asset-item>
+        <a-asset-item id="icon_6" src="../assets/icon_6.glb"></a-asset-item>
+        <a-asset-item id="icon_7" src="../assets/icon_7.glb"></a-asset-item>
+        <a-asset-item id="icon_8" src="../assets/icon_8.glb"></a-asset-item>
+        <a-asset-item id="icon_9" src="../assets/icon_9.glb"></a-asset-item>
+        <a-asset-item id="icon_A" src="../assets/icon_A.glb"></a-asset-item>
+        <a-asset-item id="icon_B" src="../assets/icon_B.glb"></a-asset-item>
+        <a-asset-item id="icon_C" src="../assets/icon_C.glb"></a-asset-item>
+        <a-asset-item id="icon_D" src="../assets/icon_D.glb"></a-asset-item>
+        <a-asset-item id="icon_E" src="../assets/icon_E.glb"></a-asset-item>
+        <a-asset-item id="icon_F" src="../assets/icon_F.glb"></a-asset-item>
 
         <audio id="press" src="../assets/press.wav"></audio>
 
         <a-mixin
           id="buttonStyle"
-          sound="src: #press; on: pressed; volume: 0.05;"
-          animation__press="property: object3D.position.y; from: 0; to: -0.1; dur: 200; startEvents: pressed;"
-          animation__buttonup="property: object3D.position.y; from: -0.1; to: 0; dur: 200; startEvents: animationcomplete__press;"
+          material="color: #2e2d34"
+          sound="src: #press; on: click; volume: 0.05;"
+          animation__click="property: object3D.position.y; from: 0; to: -0.1; dur: 200; startEvents: click;"
+          animation__afterclick="property: object3D.position.y; from: -0.1; to: 0; dur: 200; startEvents: animationcomplete__click;"
         ></a-mixin>
       </a-assets>
-      <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fed6c1" static-body></a-plane>
+      <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fed6c1"></a-plane>
 
       <a-room-panel
         scale="0.05 0.05 0.05"
-        position="0 1.5 -0.4"
+        position="0 1.5 -0.3"
         rotation="45 0 0"
       ></a-room-panel>
+
+      <a-hex-input
+        scale="0.02 0.02 0.02"
+        position="0 1.5 -0.3"
+        rotation="45 0 0"
+        join-room="on: submit;"
+        visible="false"
+      ></a-hex-input>
 
       <a-entity
         id="leftHand"
         hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
-        poke="hand: left"
+        cursor="downEvents: pressStart; upEvents: pressEnd;"
+        raycaster="objects: [visible=true] [button]; origin: -0.02, 0.0425, -0.09; direction: 0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
       ></a-entity>
       <a-entity
         id="rightHand"
         hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
-        poke="hand: right"
+        cursor="downEvents: pressStart; upEvents: pressEnd;"
+        raycaster="objects: [visible=true] [button]; origin: 0.02, 0.0425, -0.09; direction: -0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
       ></a-entity>
     </a-scene>
   </body>

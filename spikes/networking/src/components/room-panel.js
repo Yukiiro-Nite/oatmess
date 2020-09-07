@@ -8,19 +8,16 @@ AFRAME.registerPrimitive('a-room-panel', {
 AFRAME.registerComponent('room-panel', {
   schema: {},
   events: {
-    pressed: function(event) {
+    click: function(event) {
       const val = event.target.value
-
       const action = this.actions[val]
-      const isButtonColliding = event.detail.body.el.hasAttribute('button')
 
-      if(action && action instanceof Function && !isButtonColliding) {
+      if(action && action instanceof Function) {
         action()
       }
     }
   },
   init: function () {
-    this.originalPos = this.el.object3D.position.clone()
     this.createPanel = AFRAME.utils.bind(this.createPanel, this)
     this.createHexInput = AFRAME.utils.bind(this.createHexInput, this)
     this.joinRoom = AFRAME.utils.bind(this.joinRoom, this)
@@ -34,6 +31,7 @@ AFRAME.registerComponent('room-panel', {
     }
 
     this.el.appendChild(this.createPanel())
+    this.show()
   },
   update: function () {},
   tick: function () {},
@@ -42,18 +40,9 @@ AFRAME.registerComponent('room-panel', {
   play: function () {},
   createPanel: function() {
     const pos = this.el.object3D.position
-    const scale = this.el.object3D.scale
     const button = { w: 3, h: 0.1, d: 1.5 }
-    // TODO: buttons don't move when pressed
-    // may need to move button component into a wrapping entity.
     return htmlToElement(`
       <a-entity>
-        <a-entity
-          position="${pos.x - 1.75} ${pos.y} ${pos.z}"
-          id="frame-joinRoom"
-          static-body="shape: none"
-          shape="shape: box; halfExtents: ${button.w * scale.x / 2} ${button.h * scale.y / 2} ${button.d * scale.z / 2};"
-        ></a-entity>
         <a-box
           position="${pos.x - 1.75} ${pos.y} ${pos.z}"
           color="#2a4b85"
@@ -61,10 +50,7 @@ AFRAME.registerComponent('room-panel', {
           height="${button.h}"
           depth="${button.d}"
           grid="row: 1; gap: 0.25; cellWidth: 1; cellHeight: 1; hCenter: true;"
-          button="frameId: frame-joinRoom; value: joinRoom;"
-          dynamic-body="shape: none;"
-          shape="shape: box; halfExtents: ${button.w * scale.x / 2} ${button.h * scale.y / 2} ${button.d * scale.z / 2};"
-          constraint="target: #frame-joinRoom; type: lock; collideConnected: false;"
+          button="value: joinRoom;"
           mixin="buttonStyle"
         >
           <a-entity
@@ -77,12 +63,6 @@ AFRAME.registerComponent('room-panel', {
           ></a-entity>
         </a-box>
 
-        <a-entity
-          position="${pos.x + 1.75} ${pos.y} ${pos.z}"
-          id="frame-createRoom"
-          static-body="shape: none"
-          shape="shape: box; halfExtents: ${button.w * scale.x / 2} ${button.h * scale.y / 2} ${button.d * scale.z / 2};"
-        ></a-entity>
         <a-box
           position="${pos.x + 1.75} ${pos.y} ${pos.z}"
           color="#24571f"
@@ -91,9 +71,6 @@ AFRAME.registerComponent('room-panel', {
           depth="${button.d}"
           grid="row: 1; gap: 0.25; cellWidth: 1; cellHeight: 1; hCenter: true;"
           button="value: createRoom;"
-          dynamic-body="shape: none;"
-          shape="shape: box; halfExtents: ${button.w * scale.x / 2} ${button.h * scale.y / 2} ${button.d * scale.z / 2};"
-          constraint="target: #frame-createRoom; type: lock; collideConnected: false;"
           mixin="buttonStyle"
         >
           <a-entity
@@ -109,7 +86,7 @@ AFRAME.registerComponent('room-panel', {
     `)
   },
   createHexInput: function() {
-    const pos = this.originalPos
+    const pos = this.el.object3D.position
     return htmlToElement(`
       <a-hex-input
         scale="0.02 0.02 0.02"
@@ -120,7 +97,7 @@ AFRAME.registerComponent('room-panel', {
     `)
   },
   createRoomIdOutput: function() {
-    const pos = this.originalPos
+    const pos = this.el.object3D.position
     return htmlToElement(`
       <a-entity
         id="${this.outputId}"
@@ -133,11 +110,12 @@ AFRAME.registerComponent('room-panel', {
   },
   joinRoom: function() {
     console.log('joinRoom Pressed')
-    const hexInput = this.createHexInput()
+    const hexInput = this.el.sceneEl.querySelector('a-hex-input')
     const scene = this.el.sceneEl
 
     this.hide()
-    scene.appendChild(hexInput)
+    hexInput.setAttribute('visible', true)
+    hexInput.flushToDOM()
   },
   createRoom: function() {
     const socket = this.el.sceneEl.systems['networked-player'].socket
@@ -156,9 +134,11 @@ AFRAME.registerComponent('room-panel', {
     })
   },
   hide: function() {
-    this.el.object3D.position.add(new AFRAME.THREE.Vector3(0, -1000, 0))
+    this.el.setAttribute('visible', false)
+    this.el.flushToDOM()
   },
   show: function() {
-    this.el.object3D.position.copy(this.originalPos)
+    this.el.setAttribute('visible', true)
+    this.el.flushToDOM()
   }
 })

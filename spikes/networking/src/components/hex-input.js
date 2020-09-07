@@ -7,18 +7,22 @@ AFRAME.registerPrimitive('a-hex-input', {
 
 AFRAME.registerComponent('hex-input', {
   schema: {},
+  events: {
+    change: function (event) {
+      const val = event.target.value
+
+      this.output.setAttribute('output', val)
+    }
+  },
   init: function () {
     this.createOutput = AFRAME.utils.bind(this.createOutput, this)
     this.createInput = AFRAME.utils.bind(this.createInput, this)
-    this.handleChange = AFRAME.utils.bind(this.handleChange, this)
 
     this.outputId = `output-${generateId()}`
     this.el.appendChild(this.createOutput())
     this.el.appendChild(this.createInput())
 
     this.output = this.el.querySelector(`#${this.outputId}`)
-
-    this.el.addEventListener('change', this.handleChange)
   },
   update: function () {},
   tick: function () {},
@@ -29,9 +33,8 @@ AFRAME.registerComponent('hex-input', {
     return htmlToElement(`
       <a-entity
         id="${this.outputId}"
-        position="3 0 -2"
+        position="2.25 0 -1.5"
         output=""
-        grid="row: 1; gap: 0.5; cellWidth: 1.0; cellHeight: 1.0; hCenter: true;"
       >
       </a-entity>
     `)
@@ -41,39 +44,47 @@ AFRAME.registerComponent('hex-input', {
       <a-entity input-panel>
         <a-entity
           id="buttonPanel"
-          grid="col: 4; gap: 0.5; cellWidth: 1.5; cellHeight: 1.5;"
+          grid="col: 4; gap: 0.5; cellWidth: 1; cellHeight: 1;"
         >
         ${
           new Array(16).fill().map((_, i) =>`
-            <a-entity
-              button="frameModel: #buttonFrame; buttonModel: #button_${i.toString(16).toUpperCase()}; value: ${i.toString(16).toUpperCase()};"
+            <a-box
+              height="0.2"
+              button="iconScale: 0.8 0.8 0.8; buttonModel: #icon_${i.toString(16).toUpperCase()}; value: ${i.toString(16).toUpperCase()};"
               mixin="buttonStyle"
-            ></a-entity>
+            ></a-box>
           `).join('\n')
         }
         </a-entity>
-        <a-entity
-          position="8.0 0 0"
+        <a-box
+          position="6.0 0 0.75"
           rotation="0 180 0"
-          button="frameModel: #buttonFrame; buttonModel: #arrow; value: back;"
+          width="1.0"
+          height="0.2"
+          depth="2.5"
+          material="color: #16161d"
+          button="iconScale: 0.8 0.8 0.8; buttonModel: #arrow; value: back;"
           mixin="buttonStyle"
-        ></a-entity>
-        <a-entity
-          position="8.0 0 2.0"
-          button="frameModel: #buttonFrame; buttonModel: #clear; value: clear;"
+        ></a-box>
+        <a-box
+          position="6.0 0 3.75"
+          width="1.0"
+          height="0.2"
+          depth="2.5"
+          material="color: #16161d"
+          button="iconScale: 0.8 0.8 0.8; buttonModel: #clear; value: clear;"
           mixin="buttonStyle"
-        ></a-entity>
-        <a-entity
-          position="3.0 0 8.0"
-          button="frameModel: #buttonFrame; buttonModel: #enter; value: enter;"
+        ></a-box>
+        <a-box
+          position="2.25 0 6.0"
+          width="2.5"
+          height="0.2"
+          depth="1.0"
+          material="color: #16161d"
+          button="iconScale: 2.0 0.8 2.0; buttonModel: #enter; value: enter;"
           mixin="buttonStyle"
-        ></a-entity>
+        ></a-box>
       </a-entity>
     `)
-  },
-  handleChange: function(event) {
-    const val = event.target.value
-
-    this.output.setAttribute('output', val)
   }
 })

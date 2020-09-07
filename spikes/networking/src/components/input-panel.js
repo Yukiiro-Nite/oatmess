@@ -1,8 +1,18 @@
 AFRAME.registerComponent('input-panel', {
   schema: {},
+  events: {
+    click: function (event) {
+      console.log('input-panel click event: ', event)
+      const handler = this.handlers[event.target.value]
+      if(handler && handler instanceof Function) {
+        handler()
+      } else {
+        this.appendValue(event.target.value)
+      }
+    }
+  },
   init: function () {
     this.el.value = ''
-    this.handlePressed = AFRAME.utils.bind(this.handlePressed, this)
     this.appendValue = AFRAME.utils.bind(this.appendValue, this)
     this.back = AFRAME.utils.bind(this.back, this)
     this.clear = AFRAME.utils.bind(this.clear, this)
@@ -21,21 +31,12 @@ AFRAME.registerComponent('input-panel', {
     this.el.clear = this.clear
     this.el.enter = this.enter
     this.el.submit = this.submit
-    this.el.addEventListener('pressed', this.handlePressed)
   },
   update: function () {},
   tick: function () {},
   remove: function () {},
   pause: function () {},
   play: function () {},
-  handlePressed: function(event) {
-    const handler = this.handlers[event.detail.value]
-    if(handler && handler instanceof Function) {
-      handler()
-    } else {
-      this.appendValue(event.detail.value)
-    }
-  },
   back: function() {
     if(this.el.value && this.el.value.length > 0) {
       this.el.value = this.el.value.substr(0, this.el.value.length-1)
