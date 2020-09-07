@@ -12,8 +12,8 @@
         <a-mixin
           id="buttonStyle"
           sound="src: #press; on: mousedown; volume: 0.05;"
-          animation__mousedown="property: object3D.position.z; from: 0; to: -0.1; dur: 200; startEvents: mousedown;"
-          animation__mouseup="property: object3D.position.z; from: -0.1; to: 0; dur: 200; startEvents: mouseup;"
+          animation__mousedown="property: object3D.position.z; from: 0; to: -0.2; dur: 200; startEvents: mousedown;"
+          animation__mouseup="property: object3D.position.z; from: -0.2; to: 0; dur: 200; startEvents: animationcomplete__mousedown;"
         ></a-mixin>
       </a-assets>
       <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fed6c1"></a-plane>
@@ -34,23 +34,15 @@
       <a-entity
         id="leftHand"
         hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
-      >
-        <a-cursor
-          downEvents="pressStart"
-          upEvents="pressEnd"
-          raycaster="origin: 0.0275, 0.0425, -0.09; direction: 0 -1 0; far: 0.1; interval: 30;"
-        ></a-cursor>
-      </a-entity>
+        cursor="downEvents: pressStart; upEvents: pressEnd;"
+        raycaster="objects: [button]; origin: -0.02, 0.0425, -0.09; direction: 0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
+      ></a-entity>
       <a-entity
         id="rightHand"
         hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
-      >
-      <a-cursor
-        downEvents="pressStart"
-        upEvents="pressEnd"
-        raycaster="origin: 0.0275, 0.0425, -0.09; direction: 0 -1 0; far: 0.1; interval: 30;"
-      ></a-cursor>
-      </a-entity>
+        cursor="downEvents: pressStart; upEvents: pressEnd;"
+        raycaster="objects: [button]; origin: 0.02, 0.0425, -0.09; direction: -0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
+      ></a-entity>
     </a-scene>
   </body>
 </html>

@@ -3,9 +3,9 @@ AFRAME.registerComponent('button', {
     value: { type: 'string' },
     /**
      * distance of ray intersection to be considered a press.
-     * defaults to 5mm
+     * defaults to 1cm
      */
-    pressDistance: { type: 'number', default: 0.005 }
+    pressDistance: { type: 'number', default: 0.01 }
   },
   events: {
     'raycaster-intersected': function (event) {
@@ -13,7 +13,7 @@ AFRAME.registerComponent('button', {
       this.caster = event.detail.el
     },
     'raycaster-intersected-cleared': function (event) {
-      this.intersection = undefined
+      this.getIntersection = undefined
       this.caster = undefined
       this.pressed = false
     },
