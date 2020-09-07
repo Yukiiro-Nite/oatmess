@@ -102,9 +102,9 @@ AFRAME.registerComponent('room-panel', {
       <a-entity
         id="${this.outputId}"
         scale="0.02 0.02 0.02"
+        rotation="90 0 0"
         position="${pos.x} ${pos.y} ${pos.z}"
         output=""
-        grid="row: 1; gap: 0.5; cellWidth: 1.0; cellHeight: 1.0; hCenter: true;"
       ></a-entity>
     `)
   },
