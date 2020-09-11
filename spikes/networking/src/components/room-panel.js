@@ -123,7 +123,7 @@ AFRAME.registerComponent('room-panel', {
 
     socket.emit('createRoom', { size: 4 })
 
-    socket.on('newRoom', (msg) => {
+    socket.once('newRoom', (msg) => {
       this.hide()
       socket.emit('joinRoom', msg)
       this.outputId = `output-${msg.roomId}`

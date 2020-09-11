@@ -42,6 +42,8 @@ exports.config = {
         room.isFull = Object.keys(room.players).length >= room.size
         socket.join(roomId)
         socket.to(roomId).emit('playerJoin', { id })
+        socket.emit('joinRoomSuccess', { roomId })
+        socket.emit('players', room.players)
         log(`[${id}] joined room ${roomId}`)
       } else if(room && room.isFull) {
         socket.emit('fullRoom', msg)
