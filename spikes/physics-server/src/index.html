@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/donmccurdy/aframe-physics-system/v4.0.1/dist/aframe-physics-system.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
+    <script src="/socket.io.js"></script>
+    <script src="utils.js"></script>
+    <script src="components/networked-player.js"></script>
+  </head>
+  <body>
+    <a-scene
+      cursor="rayOrigin: mouse"
+      raycaster="interval: 10; objects: [ingredient]"
+      networked-player
+    >
+      <a-assets>
+        
+      </a-assets>
+      <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fed6c1"></a-plane>
+
+      <a-entity
+        id="leftHand"
+        hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+      ></a-entity>
+      <a-entity
+        id="rightHand"
+        hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+      ></a-entity>
+    </a-scene>
+  </body>
+</html>
