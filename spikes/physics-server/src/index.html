@@ -6,12 +6,14 @@
     <script src="/socket.io.js"></script>
     <script src="utils.js"></script>
     <script src="components/networked-player.js"></script>
+    <script src="components/physics-server.js"></script>
   </head>
   <body>
     <a-scene
       cursor="rayOrigin: mouse"
       raycaster="interval: 10; objects: [ingredient]"
       networked-player
+      physics-server
     >
       <a-assets>
         

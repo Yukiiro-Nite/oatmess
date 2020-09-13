@@ -134,7 +134,6 @@ AFRAME.registerComponent('networked-player', {
     rotationThreshold: { type: 'number', default: 0.2}
   },
   init: function () {
-    console.log('initializing networked player part: ', this.data.part)
     this.poseChanged = AFRAME.utils.bind(this.poseChanged, this)
     this.getPose = AFRAME.utils.bind(this.getPose, this)
     this.serializePose = AFRAME.utils.bind(this.serializePose, this)
