@@ -225,12 +225,23 @@ function serializeCollider(collider, meta) {
   const parent = collider.parent()
   const parentPos = parent.translation()
   const parentRot = parent.rotation()
+  const type = collider.shapeType()
+  const radius = collider.radius()
+  const halfExtents = collider.halfExtents()
+  const size = halfExtents && {
+    width: halfExtents.x * 2,
+    height: halfExtents.y * 2,
+    depth: halfExtents.z * 2
+  }
 
   // I don't like that I have to calculate this every time I serialize
   // unfortunately, collider pos and quat are in world space, which is inconvienient
   // when rebuilding a nested object on the front end.
   return {
     id,
+    type,
+    radius,
+    size,
     position: {
       x: pos.x - parentPos.x,
       y: pos.y - parentPos.y,

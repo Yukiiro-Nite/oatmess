@@ -23,7 +23,10 @@ exports.config = {
               type: 'cuboid',
               width: 10,
               height: 0.1,
-              depth: 10
+              depth: 10,
+              meta: {
+                color: '#CCCCCC'
+              }
             }]
           })
 
@@ -39,12 +42,26 @@ exports.config = {
             }]
           })
 
+          engine.createRigidBody({
+            type: 'dynamic',
+            position: { x:  0, y: 7, z: 0 },
+            colliders: [{
+              type: 'ball',
+              radius: 0.25,
+              meta: {
+                color: '#cc5555'
+              }
+            }]
+          })
+
           testObject.applyTorqueImpulse(new Rapier.Vector(0.1, 0, 0), true)
 
           engine.on('worldUpdate', (event) => io.emit('worldUpdate', event))
 
           engine.start(1000 / 20)
         })
+      } else {
+        io.emit('worldUpdate', engine.getWorldState())
       }
 
       const id = socket.id
