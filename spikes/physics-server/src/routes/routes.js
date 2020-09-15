@@ -1,5 +1,6 @@
 const Path = require('path')
 const RapierLoader = require('../server/rapier')
+const worldConfig = require('../server/worldConfig')
 let engine
 
 exports.config = {
@@ -17,44 +18,23 @@ exports.config = {
         RapierLoader.ready.then(({ RapierEngine, Rapier }) => {
           engine = new RapierEngine(0, -9.8, 0)
 
-          const ground = engine.createRigidBody({
-            type: 'static',
-            colliders: [{
-              type: 'cuboid',
-              width: 10,
-              height: 0.1,
-              depth: 10,
-              meta: {
-                color: '#CCCCCC'
-              }
-            }]
+          const namedBodies = {}
+          worldConfig.bodies.forEach((bodyConfig) => {
+            const body = engine.createRigidBody(bodyConfig)
+            if(bodyConfig.effect && bodyConfig.effect instanceof Function) {
+              bodyConfig.effect(body, Rapier)
+            }
+            if(bodyConfig.name) {
+              namedBodies[bodyConfig.name] = body
+            }
           })
 
-          const testObject = engine.createRigidBody({
-            type: 'dynamic',
-            position: { x: 0, y: 5, z: 0 },
-            colliders: [{
-              type: 'cuboid',
-              width: 0.5,
-              height: 0.5,
-              depth: 0.5,
-              density: 1
-            }]
-          })
+          worldConfig.joints.forEach((joint) => {
+            joint.handle1 = namedBodies[joint.body1].handle()
+            joint.handle2 = namedBodies[joint.body2].handle()
 
-          engine.createRigidBody({
-            type: 'dynamic',
-            position: { x:  0, y: 7, z: 0 },
-            colliders: [{
-              type: 'ball',
-              radius: 0.25,
-              meta: {
-                color: '#cc5555'
-              }
-            }]
+            engine.createJoint(joint)
           })
-
-          testObject.applyTorqueImpulse(new Rapier.Vector(0.1, 0, 0), true)
 
           engine.on('worldUpdate', (event) => io.emit('worldUpdate', event))
 

@@ -30,6 +30,18 @@ const RapierLoader = import('@dimforge/rapier3d')
  * @property {Vec4} rotation - Initial rotation of the rigid body.
  */
 
+/**
+ * Configuration options for a joint.
+ * @typedef {Object} JointConfig
+ * @property {String} type - Type of joint. One of ['ball', 'revolute']
+ * @property {number} handle1 - Handle for the first rigid body of the joint.
+ * @property {number} handle2 - Handle for the second rigid body of the joint.
+ * @property {Vec3} anchor1 - (Optional) First anchor of the joint. Defaults to origin.
+ * @property {Vec3} anchor1 - (Optional) Second anchor of the joint. Defaults to `body2.position - body1.position`.
+ * @property {Vec3} axis1 - (Optional) First axis in revolute joint.
+ * @property {Vec3} axis2 - (Optional) Second axis in revolute joint.
+ */
+
 const ready = RapierLoader.then((Rapier) => {
   class RapierEngine extends EventEmitter {
     constructor(gravityX, gravityY, gravityZ, positionThreshold = 0.001, rotationThreshold = 0.015) {
@@ -172,6 +184,60 @@ const ready = RapierLoader.then((Rapier) => {
 
       options.position && desc.setTranslation(options.position.x, options.position.y,  options.position.z)
       options.rotation && desc.setRotation(options.rotation.x, options.rotation.y,  options.rotation.z, options.rotation.w)
+
+      return desc
+    }
+
+    /**
+     * Used to create and add a joint to the world.
+     * @param {JointConfig} options - Options for creating a joint.
+     * @returns {Rapier.Joint} Joint
+     */
+    createJoint(options = {}) {
+      const body1 = this.world.getRigidBody(options.handle1)
+      const body2 = this.world.getRigidBody(options.handle2)
+
+      if(!options.anchor1) {
+        options.anchor1 = new Rapier.Vector(0, 0, 0)
+      } else {
+        options.anchor1 = new Rapier.Vector(options.anchor1.x, options.anchor1.y, options.anchor1.z)
+      }
+
+      if(!options.anchor2) {
+        const pos1 = body1.translation()
+        const pos2 = body2.translation()
+        options.anchor2 = new Rapier.Vector(pos2.x - pos1.x, pos2.y - pos1.y, pos2.z - pos1.z)
+      } else {
+        options.anchor2 = new Rapier.Vector(options.anchor2.x, options.anchor2.y, options.anchor2.z)
+      }
+
+      const jointDesc = this.createJointDesc(options)
+      const joint = this.world.createJoint(jointDesc, body1, body2)
+
+      return joint
+    }
+
+    createJointDesc(options = {}) {
+      let desc
+
+      switch(options.type) {
+        case 'ball':
+          desc = Rapier.JointDesc.ball(
+            options.anchor1,
+            options.anchor2
+          )
+          break
+        case 'revolute':
+          desc = Rapier.JointDesc.revolute(
+            options.anchor1,
+            options.axis1,
+            options.anchor2,
+            options.axis2
+          )
+          break
+        default:
+          desc = new Rapier.JointDesc()
+      }
 
       return desc
     }
