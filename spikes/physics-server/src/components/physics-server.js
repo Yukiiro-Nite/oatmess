@@ -11,7 +11,7 @@ AFRAME.registerSystem('physics-server', {
     this.socket.on('worldUpdate', this.handleWorldUpdate)
   },
   handleWorldUpdate: function(msg) {
-    msg.forEach((body) => {
+    msg.bodies.forEach((body) => {
       const bodyId = `body-${body.id}`
       const bodyEl = this.el.querySelector('#' + bodyId)
 
@@ -37,7 +37,7 @@ AFRAME.registerSystem('physics-server', {
       el.removeEventListener('object3dset', this)
 
       event.target.object3D.position.copy(body.position)
-      event.target.object3D.quaternion.copy(body.quaternion)
+      event.target.object3D.quaternion.copy(body.rotation)
     })
 
     this.el.appendChild(el)
@@ -45,7 +45,7 @@ AFRAME.registerSystem('physics-server', {
   updateBody: function(el, body) {
     if(el && el.object3D) {
       el.object3D.position.copy(body.position)
-      el.object3D.quaternion.copy(body.quaternion)
+      el.object3D.quaternion.copy(body.rotation)
     }
   }
 })
