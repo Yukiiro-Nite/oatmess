@@ -38,7 +38,7 @@ exports.config = {
 
           engine.on('worldUpdate', (event) => io.emit('worldUpdate', event))
 
-          engine.start(1000 / 20)
+          engine.start(1000 / 30)
         })
       } else {
         io.emit('worldUpdate', engine.getWorldState())

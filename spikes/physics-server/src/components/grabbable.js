@@ -1,7 +1,5 @@
 AFRAME.registerComponent('grabbable', {
-  schema: {
-    threshold: {default: 0.05}
-  },
+  schema: {},
   events: {
     mousedown: function (event) {
       this.socket.emit('grab', {
@@ -20,7 +18,6 @@ AFRAME.registerComponent('grabbable', {
   },
   init: function () {
     this.socket = this.el.sceneEl.systems['networked-player'].socket
-    this.el.threshold = this.data.threshold
     this.getId = AFRAME.utils.bind(this.getId, this)
     this.getPose = AFRAME.utils.bind(this.getPose, this)
     this.getPartType = AFRAME.utils.bind(this.getPartType, this)

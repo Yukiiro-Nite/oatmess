@@ -6,6 +6,7 @@
     <script src="/socket.io.js"></script>
     <script src="utils.js"></script>
     <script src="components/grabbable.js"></script>
+    <script src="components/grabbing.js"></script>
     <script src="components/networked-player.js"></script>
     <script src="components/physics-server.js"></script>
   </head>
@@ -23,10 +24,12 @@
       <a-entity
         id="leftHand"
         hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+        grabbing="objects: .grabbable"
       ></a-entity>
       <a-entity
         id="rightHand"
         hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+        grabbing="objects: .grabbable"
       ></a-entity>
     </a-scene>
   </body>

@@ -1,3 +1,22 @@
+const chain = ballChain({x: 0, y: 0.5, z: 1}, 0.07, 5, 0.1)
+const extraCubes = new Array(10).fill().map((_, i) => ({
+  type: 'dynamic',
+  position: { x: 0, y: 0.05 + i * 0.1, z: -1 },
+  colliders: [{
+    type: 'cuboid',
+    width: 0.1,
+    height: 0.1,
+    depth: 0.1,
+    density: 0.5,
+    meta: {
+      class: 'grabbable'
+    },
+  }],
+  meta: {
+    grabbable: ''
+  },
+}))
+
 const worldConfig = {
   bodies: [
     {
@@ -34,52 +53,41 @@ const worldConfig = {
         body.applyTorqueImpulse(new Rapier.Vector(0.1, 0, 0), true)
       }
     },
-    {
-      name: 'ball1',
-      type: 'dynamic',
-      position: { x:  0, y: 7, z: 0 },
-      colliders: [{
-        type: 'ball',
-        density: 1,
-        friction: 0.5,
-        restitution: 0.5,
-        radius: 0.25,
-        meta: {
-          color: '#cc5555',
-          class: 'grabbable'
-        }
-      }],
-      meta: {
-        grabbable: ''
-      }
-    },
-    {
-      name: 'ball2',
-      type: 'dynamic',
-      position: { x:  0, y: 7.5, z: 0 },
-      colliders: [{
-        type: 'ball',
-        density: 1,
-        friction: 0.5,
-        restitution: 0.5,
-        radius: 0.25,
-        meta: {
-          color: '#cc5555',
-          class: 'grabbable'
-        }
-      }],
-      meta: {
-        grabbable: ''
-      }
-    }
+    ...chain.bodies,
+    ...extraCubes
   ],
   joints: [
-    {
-      type: 'ball',
-      body1: 'ball1',
-      body2: 'ball2'
-    }
+    ...chain.joints
   ]
+}
+
+function ballChain(pos, size, length, density) {
+  return {
+    bodies: new Array(length).fill().map((_, i) => ({
+      name: `chainLink_${i}`,
+      type: 'dynamic',
+      position: { x: pos.x + i*size, y: pos.y, z: pos.z },
+      colliders: [{
+        type: 'ball',
+        density,
+        friction: 0.5,
+        restitution: 0.5,
+        radius: size / 2,
+        meta: {
+          color: '#cc5555',
+          class: 'grabbable'
+        }
+      }],
+      meta: {
+        grabbable: ''
+      }
+    })),
+    joints: new Array(length-1).fill().map((_, i) => ({
+      type: 'ball',
+      body1: `chainLink_${i}`,
+      body2: `chainLink_${i+1}`,
+    }))
+  }
 }
 
 module.exports = worldConfig
