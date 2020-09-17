@@ -22,8 +22,14 @@ const worldConfig = {
         width: 0.5,
         height: 0.5,
         depth: 0.5,
-        density: 1
+        density: 1,
+        meta: {
+          class: 'grabbable'
+        },
       }],
+      meta: {
+        grabbable: ''
+      },
       effect: (body, Rapier) => {
         body.applyTorqueImpulse(new Rapier.Vector(0.1, 0, 0), true)
       }
@@ -39,9 +45,13 @@ const worldConfig = {
         restitution: 0.5,
         radius: 0.25,
         meta: {
-          color: '#cc5555'
+          color: '#cc5555',
+          class: 'grabbable'
         }
-      }]
+      }],
+      meta: {
+        grabbable: ''
+      }
     },
     {
       name: 'ball2',
@@ -54,9 +64,13 @@ const worldConfig = {
         restitution: 0.5,
         radius: 0.25,
         meta: {
-          color: '#cc5555'
+          color: '#cc5555',
+          class: 'grabbable'
         }
-      }]
+      }],
+      meta: {
+        grabbable: ''
+      }
     }
   ],
   joints: [

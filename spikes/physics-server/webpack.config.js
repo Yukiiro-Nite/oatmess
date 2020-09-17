@@ -3,7 +3,7 @@ const path = require("path");
 
 const dist = path.resolve(__dirname, "dist");
 
-const mode = "production";
+const mode = "development";
 
 const appConfig = {
   mode: mode,

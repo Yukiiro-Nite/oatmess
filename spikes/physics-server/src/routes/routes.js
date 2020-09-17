@@ -54,10 +54,22 @@ exports.config = {
     },
     playerUpdate(io, socket, msg) {
       const id = socket.id
+      engine.updateGrabJoints(id, msg)
       socket.broadcast.emit('playerUpdate', { ...msg, id })
+    },
+    grab(io, socket, msg) {
+      msg.id = socket.id
+      // log(`[${msg.id}] grabbed object ${msg.bodyId}`)
+      engine.createGrabJoint(msg)
+    },
+    release(io, socket, msg) {
+      msg.id = socket.id
+      // log(`[${msg.id}] released object ${msg.bodyId}`)
+      engine.removeGrabJoint(msg)
     },
     disconnecting(io, socket) {
       const id = socket.id
+      engine.removePlayerGrabJoints(id)
       socket.broadcast.emit('playerLeave', { id })
     },
     disconnect(io, socket) {

@@ -131,7 +131,7 @@ AFRAME.registerComponent('networked-player', {
   schema: {
     part: { type: 'string' },
     positionThreshold: { type: 'number', default: 0.05},
-    rotationThreshold: { type: 'number', default: 0.2}
+    rotationThreshold: { type: 'number', default: 0.1}
   },
   init: function () {
     this.poseChanged = AFRAME.utils.bind(this.poseChanged, this)

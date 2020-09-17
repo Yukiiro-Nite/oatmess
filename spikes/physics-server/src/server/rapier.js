@@ -1,8 +1,11 @@
-const { EventEmitter } = require('events');
+const { EventEmitter } = require('events')
+const { Vector3, Quaternion, Euler, Matrix4 } = require('three')
+
 // Hack to get world.step working
 const { performance } = require('perf_hooks');
 globalThis.performance = performance;
 // end hack
+
 const RapierLoader = import('@dimforge/rapier3d')
 
 /**
@@ -20,6 +23,13 @@ const RapierLoader = import('@dimforge/rapier3d')
  * @property {number} y
  * @property {number} z
  * @property {number} w
+ */
+
+/**
+ * Pose containing position and rotation
+ * @typedef {Object} Pose
+ * @property {Vec3} position
+ * @property {Vec4} rotation
  */
 
 /**
@@ -56,6 +66,7 @@ const ready = RapierLoader.then((Rapier) => {
         body: {},
         collider: {}
       }
+      this.grabJointMap = {}
 
       return this
     }
@@ -241,6 +252,107 @@ const ready = RapierLoader.then((Rapier) => {
 
       return desc
     }
+
+    /**
+     * 
+     * @param {Object} options - Config object for creating a grab joint.
+     * @param {String} options.id - User id of the grab joint.
+     * @param {number} options.bodyId - Handle of the body being grabbed.
+     * @param {Vec3} options.position - Position of where the grabbing is happening.
+     * @param {String} options.part - Name of the part doing the grabbing. One player can grab with more than one part at a time.
+     * @param {Pose} options.srcPose - Pose of the part doing the grabbing.
+     */
+    createGrabJoint(options = {}) {
+      const hasGrab = this.grabJointMap[options.id]
+        && this.grabJointMap[options.id][options.part]
+
+      if(hasGrab) {
+        this.removeGrabJoint(options)
+      }
+
+      const grabbedBody = this.world.getRigidBody(options.bodyId)
+      const grabbingBody = this.createRigidBody({
+        type: 'kinematic',
+        position: options.position
+      })
+
+      const grabJoint = this.createJoint({
+        type: 'ball',
+        handle1: grabbingBody.handle(),
+        handle2: grabbedBody.handle()
+      })
+
+      this.grabJointMap[options.id] = {
+        ...this.grabJointMap[options.id],
+        [options.part]: {
+          grabbingBody,
+          grabbedBody,
+          grabJoint,
+          srcPose: options.srcPose,
+          grabOrigin: options.position
+        }
+      }
+    }
+
+    updateGrabJoints(id, playerUpdate) {
+      const hasGrab = this.grabJointMap[id]
+        && playerUpdate.parts.some(partUpdate => this.grabJointMap[id][partUpdate.part])
+      if(hasGrab) {
+        playerUpdate.parts
+          .filter(partUpdate => this.grabJointMap[id][partUpdate.part])
+          .forEach(partUpdate => {
+            this.updateGrabJoint({
+              id,
+              part: partUpdate.part,
+              newPose: {
+                position: partUpdate.position,
+                rotation: partUpdate.quaternion
+              }
+            })
+          })
+      }
+    }
+
+    /**
+     * @param {Object} options - Config object for removing a grab joint.
+     * @param {String} options.id - User id of the grab joint.
+     * @param {String} options.part - Name of the part doing the grabbing. One player can grab with more than one part at a time.
+     * @param {Pose} options.newPose - New pose of the grabbing part.
+     */
+    updateGrabJoint(options = {}) {
+      const grabJointData = this.grabJointMap[options.id]
+        && this.grabJointMap[options.id][options.part]
+      if(grabJointData) {
+        const newPos = applyPose(grabJointData.grabOrigin, grabJointData.srcPose, options.newPose)
+
+        grabJointData.grabbingBody.setTranslation(newPos.x, newPos.y, newPos.z)
+      }
+    }
+
+    removePlayerGrabJoints(id) {
+      const playerGrabJoints = this.grabJointMap[id]
+
+      if(playerGrabJoints) {
+        Object.entries(playerGrabJoints).forEach(([part, grabJointData]) => {
+          this.removeGrabJoint({ id, part })
+        })
+      }
+    }
+
+    /**
+     * 
+     * @param {Object} options - Config object for removing a grab joint.
+     * @param {String} options.id - User id of the grab joint.
+     * @param {String} options.part - Name of the part doing the grabbing. One player can grab with more than one part at a time.
+     */
+    removeGrabJoint(options = {}) {
+      const grabJointData = this.grabJointMap[options.id]
+        && this.grabJointMap[options.id][options.part]
+      if(grabJointData) {
+        this.world.removeRigidBody(grabJointData.grabbingBody)
+        delete this.grabJointMap[options.id][options.part]
+      }
+    }
   }
 
   return {
@@ -348,6 +460,19 @@ function setProp(key, from, to) {
   if(val !== undefined) {
     to[key] = val
   }
+}
+
+function applyPose(point, srcPose, newPose) {
+  const p = new Vector3(point.x, point.y, point.z)
+  const srcPos = new Vector3(srcPose.position.x, srcPose.position.y, srcPose.position.z)
+  const newPos = new Vector3(newPose.position.x, newPose.position.y, newPose.position.z)
+  const newRot = new Quaternion(newPose.rotation.x, newPose.rotation.y, newPose.rotation.z, newPose.rotation.w)
+  const dist = srcPos.distanceTo(p)
+
+  return new Vector3(0, 0, -1)
+    .applyQuaternion(newRot)
+    .multiplyScalar(dist)
+    .add(newPos)
 }
 
 module.exports = {

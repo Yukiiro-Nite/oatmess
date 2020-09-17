@@ -5,13 +5,14 @@
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
     <script src="/socket.io.js"></script>
     <script src="utils.js"></script>
+    <script src="components/grabbable.js"></script>
     <script src="components/networked-player.js"></script>
     <script src="components/physics-server.js"></script>
   </head>
   <body>
     <a-scene
       cursor="rayOrigin: mouse"
-      raycaster="interval: 10; objects: [ingredient]"
+      raycaster="interval: 10; objects: .grabbable"
       networked-player
       physics-server
     >
