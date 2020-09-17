@@ -1,5 +1,5 @@
 const { EventEmitter } = require('events')
-const { Vector3, Quaternion, Euler, Matrix4 } = require('three')
+const { Vector3, Quaternion } = require('three')
 
 // Hack to get world.step working
 const { performance } = require('perf_hooks');
