@@ -13,12 +13,14 @@ AFRAME.registerSystem('physics-server', {
     this.handleWorldUpdate = AFRAME.utils.bind(this.handleWorldUpdate, this)
     this.createBody = AFRAME.utils.bind(this.createBody, this)
     this.updateBody = AFRAME.utils.bind(this.updateBody, this)
+    this.removeBody = AFRAME.utils.bind(this.removeBody, this)
     this.createCollider = AFRAME.utils.bind(this.createCollider, this)
     this.updateCollider = AFRAME.utils.bind(this.updateCollider, this)
     this.metaToAttributes = AFRAME.utils.bind(this.metaToAttributes, this)
     this.stringifyMeta = AFRAME.utils.bind(this.stringifyMeta, this)
 
     this.socket.on('worldUpdate', this.handleWorldUpdate)
+    this.socket.on('removeBody', this.removeBody)
   },
   handleWorldUpdate: function(msg) {
     msg.bodies.forEach((body) => {
@@ -30,6 +32,29 @@ AFRAME.registerSystem('physics-server', {
         this.el.appendChild(el)
       } else {
         this.updateBody(bodyEl, body)
+      }
+    })
+
+    /**
+     * @type {number} event.handle1 - collider handle of the first collider
+     * @type {number} event.handle2 - collider handle of the second collider
+     * @type {boolean} event.started - has the collision started or ended?
+     */
+    msg.events.forEach((event) => {
+      const colliderEl1 = this.el.querySelector(`#collider-${event.handle1}`)
+      const colliderEl2 = this.el.querySelector(`#collider-${event.handle2}`)
+      if(colliderEl1 && colliderEl2) {
+        if(event.started) {
+          const event1 = new CustomEvent('collision-start', { detail: { collider: colliderEl2, handle: event.handle2 }, bubbles: true })
+          const event2 = new CustomEvent('collision-start', { detail: { collider: colliderEl1, handle: event.handle1 }, bubbles: true })
+          colliderEl1.dispatchEvent(event1)
+          colliderEl2.dispatchEvent(event2)
+        } else {
+          const event1 = new CustomEvent('collision-end', { detail: { collider: colliderEl2, handle: event.handle2 }, bubbles: true })
+          const event2 = new CustomEvent('collision-end', { detail: { collider: colliderEl1, handle: event.handle1 }, bubbles: true })
+          colliderEl1.dispatchEvent(event1)
+          colliderEl2.dispatchEvent(event2)
+        }
       }
     })
   },
@@ -58,6 +83,12 @@ AFRAME.registerSystem('physics-server', {
     if(el && el.object3D) {
       el.object3D.position.copy(body.position)
       el.object3D.quaternion.copy(body.rotation)
+    }
+  },
+  removeBody: function(msg) {
+    const bodyEl = this.el.querySelector(`#body-${msg.id}`)
+    if(bodyEl) {
+      bodyEl.remove()
     }
   },
   createCollider: function(collider) {

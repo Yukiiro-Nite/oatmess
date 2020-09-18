@@ -350,12 +350,24 @@ const ready = RapierLoader.then((Rapier) => {
       const grabJointData = this.grabJointMap[options.id]
         && this.grabJointMap[options.id][options.part]
       if(grabJointData) {
+        const grabbingBodyId = grabJointData.grabbingBody.handle()
         this.world.removeRigidBody(grabJointData.grabbingBody)
         if(options.velocity) {
           const vel = new Rapier.Vector(options.velocity.x, options.velocity.y, options.velocity.z)
           grabJointData.grabbedBody.applyForce(vel)
         }
         delete this.grabJointMap[options.id][options.part]
+        return grabbingBodyId
+      }
+    }
+
+    removeRigidBodyByCollider(colliderId) {
+      const collider = this.world.getCollider(colliderId)
+      if(collider) {
+        const body = collider.parent()
+        const bodyId = body.handle()
+        this.world.removeRigidBody(body)
+        return bodyId
       }
     }
   }

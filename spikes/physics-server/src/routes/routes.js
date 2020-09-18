@@ -67,7 +67,16 @@ exports.config = {
     release(io, socket, msg) {
       msg.id = socket.id
       // log(`[${msg.id}] released object ${msg.bodyId}`)
-      engine.removeGrabJoint(msg)
+      const grabbingBodyId = engine.removeGrabJoint(msg)
+      if(grabbingBodyId !== undefined) {
+        io.emit('removeBody', { id: grabbingBodyId })
+      }
+    },
+    removeBodyByCollider(io, socket, msg) {
+      const bodyId = engine.removeRigidBodyByCollider(msg.colliderId)
+      if(bodyId !== undefined) {
+        io.emit('removeBody',  { id: bodyId })
+      }
     },
     disconnecting(io, socket) {
       const id = socket.id

@@ -8,7 +8,8 @@ const extraCubes = new Array(10).fill().map((_, i) => ({
     depth: 0.1,
     density: 1,
     meta: {
-      class: 'grabbable'
+      class: 'grabbable',
+      removable: ''
     },
   }],
   meta: {
@@ -168,7 +169,10 @@ function pot(pos, size) {
         depth: d - 2*t,
         density: 1,
         meta: { color: '#442a1e' }
-      }]
+      }],
+      meta: {
+        'remove-collided': ''
+      }
     }
   ]
 }
