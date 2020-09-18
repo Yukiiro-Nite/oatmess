@@ -1,4 +1,3 @@
-const chain = ballChain({x: 0, y: 0.5, z: 1}, 0.07, 5, 0.1)
 const extraCubes = new Array(10).fill().map((_, i) => ({
   type: 'dynamic',
   position: { x: 0, y: 0.05 + i * 0.1, z: -1 },
@@ -7,7 +6,7 @@ const extraCubes = new Array(10).fill().map((_, i) => ({
     width: 0.1,
     height: 0.1,
     depth: 0.1,
-    density: 0.5,
+    density: 1,
     meta: {
       class: 'grabbable'
     },
@@ -53,12 +52,9 @@ const worldConfig = {
         body.applyTorqueImpulse(new Rapier.Vector(0.1, 0, 0), true)
       }
     },
-    ...chain.bodies,
     ...extraCubes
   ],
-  joints: [
-    ...chain.joints
-  ]
+  joints: []
 }
 
 function ballChain(pos, size, length, density) {

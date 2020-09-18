@@ -1,7 +1,7 @@
 const Path = require('path')
 const RapierLoader = require('../server/rapier')
 const worldConfig = require('../server/worldConfig')
-let engine
+let engine, engineLoading
 
 exports.config = {
   routes: {
@@ -14,8 +14,8 @@ exports.config = {
   },
   socketEvents: {
     connection(io, socket) {
-      if(!engine) {
-        RapierLoader.ready.then(({ RapierEngine, Rapier }) => {
+      if(!engine && !engineLoading) {
+        engineLoading = RapierLoader.ready.then(({ RapierEngine, Rapier }) => {
           engine = new RapierEngine(0, -9.8, 0)
 
           const namedBodies = {}
@@ -41,7 +41,9 @@ exports.config = {
           engine.start(1000 / 30)
         })
       } else {
-        io.emit('worldUpdate', engine.getWorldState())
+        engineLoading.then(() => {
+          socket.emit('worldUpdate', engine.getWorldState())
+        })
       }
 
       const id = socket.id

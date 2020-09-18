@@ -27,10 +27,10 @@ AFRAME.registerComponent('grabbing', {
           .applyQuaternion(
             this.currentItem.object3D.quaternion.clone().inverse()
           )
-          .multiplyScalar(10)
+          .multiplyScalar(0.1)
       
         this.currentItem.dispatchEvent(new CustomEvent('mouseup', {
-          detail: { cursorEl: this.el },
+          detail: { cursorEl: this.el, velocity: this.velocity },
           bubbles: true
         }))
 

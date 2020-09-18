@@ -271,6 +271,7 @@ const ready = RapierLoader.then((Rapier) => {
       }
 
       const grabbedBody = this.world.getRigidBody(options.bodyId)
+      grabbedBody.wakeUp()
       const grabbingBody = this.createRigidBody({
         type: 'kinematic',
         position: options.position
@@ -350,6 +351,10 @@ const ready = RapierLoader.then((Rapier) => {
         && this.grabJointMap[options.id][options.part]
       if(grabJointData) {
         this.world.removeRigidBody(grabJointData.grabbingBody)
+        if(options.velocity) {
+          const vel = new Rapier.Vector(options.velocity.x, options.velocity.y, options.velocity.z)
+          grabJointData.grabbedBody.applyForce(vel)
+        }
         delete this.grabJointMap[options.id][options.part]
       }
     }

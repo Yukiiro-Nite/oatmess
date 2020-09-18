@@ -12,7 +12,8 @@ AFRAME.registerComponent('grabbable', {
     mouseup: function (event) {
       this.socket.emit('release', {
         bodyId: this.getId(),
-        part: this.getPartType(event.detail.cursorEl)
+        part: this.getPartType(event.detail.cursorEl),
+        velocity: event.detail.velocity || new AFRAME.THREE.Vector3()
       })
     }
   },
