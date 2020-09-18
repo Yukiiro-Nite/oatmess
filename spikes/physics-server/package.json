@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@dimforge/rapier3d": "^0.1.15",
+    "@dimforge/rapier3d": "^0.1.17",
     "three": "^0.120.1"
   },
   "devDependencies": {
