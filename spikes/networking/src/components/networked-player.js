@@ -52,6 +52,8 @@ AFRAME.registerSystem('networked-player', {
     this.detachNetworkedPlayer = AFRAME.utils.bind(this.detachNetworkedPlayer, this)
     this.createPart = AFRAME.utils.bind(this.createPart, this)
     this.updatePart = AFRAME.utils.bind(this.updatePart, this)
+    this.createRoomIdOutput = AFRAME.utils.bind(this.createRoomIdOutput, this)
+    this.getPlayerHeight = AFRAME.utils.bind(this.getPlayerHeight, this)
 
 
     this.socket.on('fullRoom', this.handleFullRoom)
@@ -106,11 +108,16 @@ AFRAME.registerSystem('networked-player', {
     this.socket.emit('playerUpdate', msg)
   },
   attachNetworkedPlayer: function (msg) {
+    // hide the hex input
+    this.el.querySelector('#hexInput').hide()
+
+    // get player parts
     const playerRig = this.el.querySelector('#playerRig')
     const playerHead = this.el.systems.camera.activeCameraEl
     const playerRightHand = this.el.querySelector('#rightHand')
     const playerLeftHand = this.el.querySelector('#leftHand')
 
+    // set player rig offset
     playerRig.object3D.position.add(msg.offset.position)
     playerRig.object3D.rotation.set(
       msg.offset.rotation.x,
@@ -118,9 +125,18 @@ AFRAME.registerSystem('networked-player', {
       msg.offset.rotation.z
     )
 
+    // network player parts
     playerHead && playerHead.setAttribute('networked-player', { part: 'head' })
     playerRightHand && playerRightHand.setAttribute('networked-player', { part: 'rightHand' })
     playerLeftHand && playerLeftHand.setAttribute('networked-player', { part: 'leftHand' })
+
+    // set up player space
+    const outputId = `output-${msg.roomId}`
+    const outputEl = this.createRoomIdOutput(outputId, msg.offset.position, msg.offset.rotation)
+    this.el.appendChild(outputEl)
+
+    const output = this.el.querySelector(`#${outputId}`)
+    output.setAttribute('output', msg.roomId)
   },
   detachNetworkedPlayer: function () {
     const playerHead = this.el.systems.camera.activeCameraEl
@@ -149,6 +165,32 @@ AFRAME.registerSystem('networked-player', {
   updatePart: function (part, msg) {
     part.object3D.position.copy(msg.position)
     part.object3D.quaternion.copy(msg.quaternion)
+  },
+  createRoomIdOutput: function(id, pos, rot) {
+    const counterPose = getCounterPose(pos, rot, 0.3)
+    counterPose.position.y += (this.getPlayerHeight() - 0.3)
+
+    const rotation = new AFRAME.THREE.Euler()
+      .setFromQuaternion(counterPose.quaternion)
+      .toVector3()
+      .multiplyScalar(180 / Math.PI)
+    rotation.x += 90
+    
+    return htmlToElement(`
+      <a-entity
+        id="${id}"
+        scale="0.02 0.02 0.02"
+        rotation="${rotation.x} ${rotation.y} ${rotation.z}"
+        position="${counterPose.position.x} ${counterPose.position.y} ${counterPose.position.z}"
+        output=""
+      ></a-entity>
+    `)
+  },
+  getPlayerHeight: function() {
+    const cameraPosition = new AFRAME.THREE.Vector3()
+    this.el.systems.camera.activeCameraEl.object3D.getWorldPosition(cameraPosition)
+
+    return cameraPosition.y
   }
 });
 

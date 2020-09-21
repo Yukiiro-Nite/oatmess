@@ -24,6 +24,8 @@ AFRAME.registerComponent('room-panel', {
     this.createRoom = AFRAME.utils.bind(this.createRoom, this)
     this.hide = AFRAME.utils.bind(this.hide, this)
     this.show = AFRAME.utils.bind(this.show, this)
+    this.el.hide = this.hide
+    this.el.show = this.show
 
     this.actions = {
       joinRoom: this.joinRoom,
@@ -31,7 +33,6 @@ AFRAME.registerComponent('room-panel', {
     }
 
     this.el.appendChild(this.createPanel())
-    this.show()
   },
   update: function () {},
   tick: function () {},
@@ -126,11 +127,6 @@ AFRAME.registerComponent('room-panel', {
     socket.once('newRoom', (msg) => {
       this.hide()
       socket.emit('joinRoom', msg)
-      this.outputId = `output-${msg.roomId}`
-      this.el.sceneEl.appendChild(this.createRoomIdOutput())
-
-      const output = this.el.sceneEl.querySelector(`#${this.outputId}`)
-      output.setAttribute('output', msg.roomId)
     })
   },
   hide: function() {

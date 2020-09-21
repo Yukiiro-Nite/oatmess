@@ -17,6 +17,10 @@ AFRAME.registerComponent('hex-input', {
   init: function () {
     this.createOutput = AFRAME.utils.bind(this.createOutput, this)
     this.createInput = AFRAME.utils.bind(this.createInput, this)
+    this.hide = AFRAME.utils.bind(this.hide, this)
+    this.show = AFRAME.utils.bind(this.show, this)
+    this.el.hide = this.hide
+    this.el.show = this.show
 
     this.outputId = `output-${generateId()}`
     this.el.appendChild(this.createOutput())
@@ -86,5 +90,13 @@ AFRAME.registerComponent('hex-input', {
         ></a-box>
       </a-entity>
     `)
+  },
+  hide: function() {
+    this.el.setAttribute('visible', false)
+    this.el.flushToDOM()
+  },
+  show: function() {
+    this.el.setAttribute('visible', true)
+    this.el.flushToDOM()
   }
 })
