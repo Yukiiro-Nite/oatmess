@@ -1,4 +1,5 @@
 const Path = require('path')
+const { getPlayerPlacement, getNextIndex } = require('./playerPosition')
 /**
  * rooms = {
  *   [roomId]: {
@@ -38,11 +39,14 @@ exports.config = {
       const room = rooms[roomId]
 
       if(room && !room.isFull) {
-        room.players[id] = {}
+        const index = getNextIndex(Object.values(room.players))
+        const offset = getPlayerPlacement(index, room.size, 2)
+        const newPlayer = { id, roomId, index, offset }
+        room.players[id] = newPlayer
         room.isFull = Object.keys(room.players).length >= room.size
         socket.join(roomId)
-        socket.to(roomId).emit('playerJoin', { id })
-        socket.emit('joinRoomSuccess', { roomId })
+        socket.to(roomId).emit('playerJoin', newPlayer)
+        socket.emit('joinRoomSuccess', newPlayer)
         socket.emit('players', room.players)
         log(`[${id}] joined room ${roomId}`)
       } else if(room && room.isFull) {
@@ -74,7 +78,7 @@ exports.config = {
       roomIds.forEach(roomId => {
         const room = rooms[roomId]
         if(room) {
-          room.players[id] = msg
+          room.players[id].parts = msg.parts
           socket.to(roomId).emit('playerUpdate', { ...msg, id })
         }
       })
@@ -86,6 +90,7 @@ exports.config = {
         const room = rooms[roomId]
         if(room) {
           delete room.players[id]
+          room.isFull = Object.keys(room.players).length >= room.size
           socket.to(roomId).emit('playerLeave', { id })
         }
       })

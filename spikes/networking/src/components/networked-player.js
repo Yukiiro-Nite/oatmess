@@ -68,8 +68,8 @@ AFRAME.registerSystem('networked-player', {
   handleNoRoom: function (msg) {
     console.log('Got socket event: noRoom', msg)
   },
-  handleJoinRoomSuccess: function () {
-    this.attachNetworkedPlayer()
+  handleJoinRoomSuccess: function (msg) {
+    this.attachNetworkedPlayer(msg)
   },
   handlePlayers: function (msg) {
     console.log('Got socket event: players', msg)
@@ -105,10 +105,18 @@ AFRAME.registerSystem('networked-player', {
   emitPlayerUpdate: function (msg) {
     this.socket.emit('playerUpdate', msg)
   },
-  attachNetworkedPlayer: function () {
+  attachNetworkedPlayer: function (msg) {
+    const playerRig = this.el.querySelector('#playerRig')
     const playerHead = this.el.systems.camera.activeCameraEl
     const playerRightHand = this.el.querySelector('#rightHand')
     const playerLeftHand = this.el.querySelector('#leftHand')
+
+    playerRig.object3D.position.add(msg.offset.position)
+    playerRig.object3D.rotation.set(
+      msg.offset.rotation.x,
+      msg.offset.rotation.y,
+      msg.offset.rotation.z
+    )
 
     playerHead && playerHead.setAttribute('networked-player', { part: 'head' })
     playerRightHand && playerRightHand.setAttribute('networked-player', { part: 'rightHand' })
@@ -151,6 +159,9 @@ AFRAME.registerComponent('networked-player', {
     rotationThreshold: { type: 'number', default: 0.2}
   },
   init: function () {
+    this.posePosition = new AFRAME.THREE.Vector3()
+    this.poseQuaternion = new AFRAME.THREE.Quaternion()
+
     this.poseChanged = AFRAME.utils.bind(this.poseChanged, this)
     this.getPose = AFRAME.utils.bind(this.getPose, this)
     this.serializePose = AFRAME.utils.bind(this.serializePose, this)
@@ -189,10 +200,13 @@ AFRAME.registerComponent('networked-player', {
     return changed
   },
   getPose: function () {
+    this.el.object3D.getWorldPosition(this.posePosition)
+    this.el.object3D.getWorldQuaternion(this.poseQuaternion)
+
     return {
       part: this.data.part,
-      position: this.el.object3D.position.clone(),
-      quaternion: this.el.object3D.quaternion.clone()
+      position: this.posePosition,
+      quaternion: this.poseQuaternion
     }
   },
   serializePose: function (pose) {

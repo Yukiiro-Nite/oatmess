@@ -74,18 +74,26 @@
         visible="false"
       ></a-hex-input>
 
-      <a-entity
-        id="leftHand"
-        hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
-        cursor="downEvents: pressStart; upEvents: pressEnd;"
-        raycaster="objects: [visible=true] [button]; origin: -0.02, 0.0425, -0.09; direction: 0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
-      ></a-entity>
-      <a-entity
-        id="rightHand"
-        hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
-        cursor="downEvents: pressStart; upEvents: pressEnd;"
-        raycaster="objects: [visible=true] [button]; origin: 0.02, 0.0425, -0.09; direction: -0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
-      ></a-entity>
+      <a-entity id="playerRig">
+        <a-entity
+          camera="active: true"
+          look-controls
+          wasd-controls
+          position="0 1.6 0"
+        ></a-entity>
+        <a-entity
+          id="leftHand"
+          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+          cursor="downEvents: pressStart; upEvents: pressEnd;"
+          raycaster="objects: [visible=true] [button]; origin: -0.02, 0.0425, -0.09; direction: 0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
+        ></a-entity>
+        <a-entity
+          id="rightHand"
+          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+          cursor="downEvents: pressStart; upEvents: pressEnd;"
+          raycaster="objects: [visible=true] [button]; origin: 0.02, 0.0425, -0.09; direction: -0.1, 0, 0; far: 0.1; interval: 30; showLine: true;"
+        ></a-entity>
+      </a-entity>
     </a-scene>
   </body>
 </html>
