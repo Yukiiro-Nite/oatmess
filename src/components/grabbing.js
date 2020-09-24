@@ -8,12 +8,13 @@ AFRAME.registerComponent('grabbing', {
       const closestGrabbable = this.getClosestGrabbable(this.el)
       if(closestGrabbable) {
         this.currentItem = closestGrabbable
+        this.el.object3D.getWorldPosition(this.fromPos)
         
         closestGrabbable.dispatchEvent(new CustomEvent('mousedown', {
           detail: {
             cursorEl: this.el,
             intersection: {
-              point: this.el.object3D.position
+              point: this.fromPos.clone()
             }
           },
           bubbles: true
@@ -42,6 +43,7 @@ AFRAME.registerComponent('grabbing', {
     this.el.threshold = this.data.threshold
     this.lastPosition = new AFRAME.THREE.Vector3()
     this.velocity = new AFRAME.THREE.Vector3()
+    this.fromPos = new AFRAME.THREE.Vector3()
 
     this.grabItem = AFRAME.utils.bind(this.grabItem, this)
     this.dropItem = AFRAME.utils.bind(this.dropItem, this)
@@ -51,20 +53,21 @@ AFRAME.registerComponent('grabbing', {
   update: function () {},
   tick: function (uptime, delta) {
     if(this.currentItem) {
+      this.el.object3D.getWorldPosition(this.fromPos)
       this.velocity.copy(
-        this.el.object3D.position.clone()
+        this.fromPos.clone()
           .sub(this.lastPosition)
           .multiplyScalar(1 / (delta / 1000))
       )
     }
 
-    this.lastPosition.copy(this.el.object3D.position)
+    this.lastPosition.copy(this.fromPos)
   },
   remove: function () {},
   pause: function () {},
   play: function () {},
   getClosestGrabbable: function(from) {
-    const pos = from.object3D.position
+    from.object3D.getWorldPosition(this.fromPos)
     const grabbables = this.el.sceneEl.querySelectorAll(this.data.objects)
 
     if(grabbables && grabbables.length > 0) {
@@ -72,7 +75,7 @@ AFRAME.registerComponent('grabbing', {
       globalPos = new AFRAME.THREE.Vector3()
       for(let i=0; i < grabbables.length; i++) {
         grabbables[i].object3D.getWorldPosition(globalPos)
-        currentDistance = pos.distanceTo(globalPos)
+        currentDistance = this.fromPos.distanceTo(globalPos)
         isCloser =  closestDistance === undefined
           || currentDistance < closestDistance
         if(isCloser) {

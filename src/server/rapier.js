@@ -263,7 +263,6 @@ const ready = RapierLoader.then((Rapier) => {
      * @param {Pose} options.srcPose - Pose of the part doing the grabbing.
      */
     createGrabJoint(options = {}) {
-      console.log('Creating grab joint: ', options)
       const hasGrab = this.grabJointMap[options.id]
         && this.grabJointMap[options.id][options.part]
 
@@ -352,7 +351,7 @@ const ready = RapierLoader.then((Rapier) => {
         && this.grabJointMap[options.id][options.part]
       if(grabJointData) {
         const grabbingBodyId = grabJointData.grabbingBody.handle()
-        this.world.removeRigidBody(grabJointData.grabbingBody)
+        this.removeRigidBody(grabJointData.grabbingBody)
         if(options.velocity) {
           const vel = new Rapier.Vector(options.velocity.x, options.velocity.y, options.velocity.z)
           grabJointData.grabbedBody.applyForce(vel)
@@ -367,9 +366,23 @@ const ready = RapierLoader.then((Rapier) => {
       if(collider) {
         const body = collider.parent()
         const bodyId = body.handle()
-        this.world.removeRigidBody(body)
+        this.removeRigidBody(body)
         return bodyId
       }
+    }
+
+    removeRigidBody(body) {
+      const colliderCount = body.numColliders()
+      let colliderId
+
+      for(let i=0; i < colliderCount; i++){
+        colliderId = body.collider(i).handle()
+        delete this.meta.collider[colliderId]
+      }
+
+      delete this.meta.body[body.handle()]
+
+      this.world.removeRigidBody(body)
     }
 
     initializeWorld(worldConfig) {

@@ -19,17 +19,21 @@ function getId (el) {
  * @param {HTMLElement} el - An element to get a pose from.
  */
 function getPose (el) {
+  const position = new AFRAME.THREE.Vector3()
+  const rotation = new AFRAME.THREE.Quaternion()
   if(el === getSceneEl()) {
+    el.systems.camera.activeCameraEl.object3D.getWorldPosition(position)
+    el.systems.camera.activeCameraEl.object3D.getWorldQuaternion(rotation)
     return {
       position: el.systems.camera.activeCameraEl.object3D.position,
       rotation: el.systems.camera.activeCameraEl.object3D.quaternion,
     }
   } else {
-    return {
-      position: el.object3D.position,
-      rotation: el.object3D.quaternion
-    }
+    el.object3D.getWorldPosition(position)
+    el.object3D.getWorldQuaternion(rotation)
   }
+
+  return { position, rotation }
 }
 
 /**

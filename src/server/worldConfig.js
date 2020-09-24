@@ -1,19 +1,20 @@
-const extraCubes = new Array(10).fill().map((_, i) => ({
+const extraCubes = new Array(20).fill().map((_, i) => ({
   type: 'dynamic',
-  position: { x: -0.5, y: 0.05 + i * 0.1, z: -1 },
+  position: { x: 1, y: 0.035 + i * 0.07, z: 0 },
   colliders: [{
     type: 'cuboid',
-    width: 0.1,
-    height: 0.1,
-    depth: 0.1,
+    width: 0.07,
+    height: 0.07,
+    depth: 0.07,
     density: 1,
     meta: {
       class: 'grabbable',
-      removable: ''
+      removable: true
     },
   }],
   meta: {
-    grabbable: ''
+    grabbable: true,
+    'gltf-model': '#apple'
   },
 }))
 
@@ -32,26 +33,6 @@ const worldConfig = {
           color: '#CCCCCC'
         }
       }]
-    },
-    {
-      type: 'dynamic',
-      position: { x: 0, y: 5, z: 0 },
-      colliders: [{
-        type: 'cuboid',
-        width: 0.5,
-        height: 0.5,
-        depth: 0.5,
-        density: 1,
-        meta: {
-          class: 'grabbable'
-        },
-      }],
-      meta: {
-        grabbable: ''
-      },
-      effect: (body, Rapier) => {
-        body.applyTorqueImpulse(new Rapier.Vector(0.1, 0, 0), true)
-      }
     },
     ...extraCubes,
     ...pot(

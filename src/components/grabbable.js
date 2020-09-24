@@ -2,7 +2,6 @@ AFRAME.registerComponent('grabbable', {
   schema: {},
   events: {
     mousedown: function (event) {
-      console.log('mousedown', event)
       this.socket.emit('grab', {
         bodyId: getId(this.el),
         position: event.detail.intersection.point,
@@ -11,7 +10,6 @@ AFRAME.registerComponent('grabbable', {
       })
     },
     mouseup: function (event) {
-      console.log('mouseup', event)
       this.socket.emit('release', {
         bodyId: getId(this.el),
         part: getPartType(event.detail.cursorEl),
