@@ -1,6 +1,7 @@
 const Path = require('path')
 const RapierLoader = require('../server/rapier')
 const worldConfig = require('../server/worldConfig')
+const structures = require('../server/structures')
 const { getPlayerPlacement, getNextIndex } = require('./playerPosition')
 /**
  * rooms = {
@@ -53,6 +54,8 @@ exports.config = {
         socket.emit('joinRoomSuccess', newPlayer)
         socket.emit('players', room.players)
         if(room.engine) {
+          const spaceConfig = structures.playerSpace(newPlayer)
+          room.engine.addToWorld(spaceConfig)
           socket.emit('worldUpdate', room.engine.getWorldState())
         }
         log(`[${id}] joined room ${roomId}`)
@@ -80,8 +83,9 @@ exports.config = {
 
       const engineReady = RapierLoader.ready.then(({ RapierEngine, Rapier }) => {
         const engine = new RapierEngine(0, -9.8, 0)
-        engine.initializeWorld(worldConfig)
+        engine.addToWorld(worldConfig)
         engine.on('worldUpdate', (event) => io.to(roomId).emit('worldUpdate', event))
+        engine.on('removeBody', (event) => io.to(roomId).emit('removeBody', event))
         engine.start(1000 / 30)
         rooms[roomId].engine = engine
 
@@ -112,20 +116,14 @@ exports.config = {
       msg.id = socket.id
       forRooms(socket, room => {
         if(room.engine) {
-          const grabbingBodyId = room.engine.removeGrabJoint(msg)
-          if(grabbingBodyId !== undefined) {
-            io.to(room.id).emit('removeBody', { id: grabbingBodyId })
-          }  
+          room.engine.removeGrabJoint(msg)  
         }
       })
     },
     removeBodyByCollider(io, socket, msg) {
       forRooms(socket, room => {
         if(room.engine) {
-          const bodyId = room.engine.removeRigidBodyByCollider(msg.colliderId)
-          if(bodyId !== undefined) {
-            io.to(room.id).emit('removeBody',  { id: bodyId })
-          }
+          room.engine.removeRigidBodyByCollider(msg.colliderId)
         }
       })
     },

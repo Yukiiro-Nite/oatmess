@@ -54,10 +54,11 @@ const RapierLoader = import('@dimforge/rapier3d')
 
 const ready = RapierLoader.then((Rapier) => {
   class RapierEngine extends EventEmitter {
-    constructor(gravityX, gravityY, gravityZ, positionThreshold = 0.001, rotationThreshold = 0.015) {
+    constructor(gravityX, gravityY, gravityZ, positionThreshold = 0.001, rotationThreshold = 0.015, worldThreshold = 100) {
       super()
       this.positionThreshold = positionThreshold
       this.rotationThreshold = rotationThreshold
+      this.worldThreshold = worldThreshold
       this.world = new Rapier.World(gravityX, gravityY, gravityZ)
       this.eventQueue = new Rapier.EventQueue(true)
       this.running = false
@@ -67,6 +68,7 @@ const ready = RapierLoader.then((Rapier) => {
         collider: {}
       }
       this.grabJointMap = {}
+      this.bodiesToCull = []
 
       return this
     }
@@ -88,6 +90,10 @@ const ready = RapierLoader.then((Rapier) => {
 
       if(worldDiff) {
         this.emit('worldUpdate', worldDiff)
+      }
+
+      if(this.bodiesToCull.length > 0) {
+        this.cullBodies()
       }
 
       if(this.running) {
@@ -130,6 +136,9 @@ const ready = RapierLoader.then((Rapier) => {
 
       this.world.forEachRigidBody((body) => {
         worldState.bodies.push(serializeBody(body, this.meta))
+        if(outOfBounds(body.translation(), this.worldThreshold)) {
+          this.bodiesToCull.push(body)
+        }
       })
 
       this.eventQueue.drainContactEvents((handle1, handle2, started) => {
@@ -372,6 +381,7 @@ const ready = RapierLoader.then((Rapier) => {
     }
 
     removeRigidBody(body) {
+      const bodyId = body.handle()
       const colliderCount = body.numColliders()
       let colliderId
 
@@ -383,9 +393,10 @@ const ready = RapierLoader.then((Rapier) => {
       delete this.meta.body[body.handle()]
 
       this.world.removeRigidBody(body)
+      this.emit('removeBody', { id: bodyId })
     }
 
-    initializeWorld(worldConfig) {
+    addToWorld(worldConfig) {
       const namedBodies = {}
       worldConfig.bodies.forEach((bodyConfig) => {
         const body = this.createRigidBody(bodyConfig)
@@ -403,6 +414,12 @@ const ready = RapierLoader.then((Rapier) => {
 
         this.createJoint(joint)
       })
+    }
+
+    cullBodies() {
+      while(this.bodiesToCull.length > 0) {
+        this.removeRigidBody(this.bodiesToCull.pop())
+      }
     }
   }
 
@@ -524,6 +541,12 @@ function applyPose(point, srcPose, newPose) {
     .applyQuaternion(newRot)
     .multiplyScalar(dist)
     .add(newPos)
+}
+
+function outOfBounds(position, threshold) {
+  return Math.abs(position.x) > threshold
+    || Math.abs(position.y) > threshold
+    || Math.abs(position.z) > threshold
 }
 
 module.exports = {
