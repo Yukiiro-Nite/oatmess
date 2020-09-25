@@ -5,6 +5,8 @@ const {
 } = require('three')
 const pot = require('./pot')
 const apple = require('./apple')
+const spawner = require('./spawner')
+const conveyor = require('./conveyor')
 
 /**
  * Returns a config object to add a player space to a world.
@@ -17,6 +19,12 @@ const apple = require('./apple')
  * @param {Vec3} player.offset.rotation
  */
 function playerSpace(player) {
+  const offsetQuat = new Quaternion()
+    .setFromEuler(new Euler(
+      player.offset.rotation.x,
+      player.offset.rotation.y,
+      player.offset.rotation.z
+    ))
   const potPose = getCounterPose(player.offset.position, player.offset.rotation, 0.4)
   const potConfig = pot(
     potPose.position,
@@ -24,12 +32,34 @@ function playerSpace(player) {
     { width: 0.4, height: 0.4, depth: 0.4, thickness: 0.02 }
   )
   const appleConfig = [
-    apple({ ...player.offset.position, y: 0.5 } )
+    apple({ ...player.offset.position, y: 0.5 })
+  ]
+  const spawnerConfigs = [
+    spawner(
+      getOffsetFromPose(player.offset, { x: -0.3, y: 0.5, z: 0.3 }),
+      offsetQuat
+    ),
+    spawner(
+      getOffsetFromPose(player.offset, { x: 0.3, y: 0.5, z: 0.3 }),
+      offsetQuat
+    )
+  ]
+  const conveyorConfigs = [
+    conveyor(
+      getOffsetFromPose(player.offset, { x: -0.3, y: 0.41, z: -0.2 }),
+      offsetQuat
+    ),
+    conveyor(
+      getOffsetFromPose(player.offset, { x: 0.3, y: 0.41, z: -0.2 }),
+      offsetQuat
+    ),
   ]
   return {
     bodies: [
       ...potConfig,
-      ...appleConfig
+      ...appleConfig,
+      ...spawnerConfigs,
+      ...conveyorConfigs
     ],
     joints: []
   }
@@ -48,6 +78,18 @@ function getCounterPose(position, rotation, distance) {
     position: position.add(offsetPosition),
     quaternion
   }
+}
+
+function getOffsetFromPose(pose, offset) {
+  const position = new Vector3(pose.position.x, pose.position.y, pose.position.z)
+  const quaternion = new Quaternion()
+    .setFromEuler(new Euler(pose.rotation.x, pose.rotation.y, pose.rotation.z))
+  const offsetPos = new Vector3(offset.x, offset.y, offset.z)
+  offsetPos
+    .applyQuaternion(quaternion)
+    .add(position)
+
+  return offsetPos
 }
 
 module.exports = playerSpace
