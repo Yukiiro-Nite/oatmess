@@ -7,6 +7,8 @@ const pot = require('./pot')
 const apple = require('./apple')
 const spawner = require('./spawner')
 const conveyor = require('./conveyor')
+const spawnIngredient = require('./spawnIngredient')
+const { getCounterPose, getOffsetFromPose } = require('../utils/vectorUtils')
 
 /**
  * Returns a config object to add a player space to a world.
@@ -25,7 +27,7 @@ function playerSpace(player) {
       player.offset.rotation.y,
       player.offset.rotation.z
     ))
-  const potPose = getCounterPose(player.offset.position, player.offset.rotation, 0.4)
+  const potPose = getCounterPose(player.offset, 0.4)
   const potConfig = pot(
     potPose.position,
     undefined,
@@ -37,11 +39,13 @@ function playerSpace(player) {
   const spawnerConfigs = [
     spawner(
       getOffsetFromPose(player.offset, { x: -0.3, y: 0.5, z: 0.3 }),
-      offsetQuat
+      offsetQuat,
+      spawnIngredient
     ),
     spawner(
       getOffsetFromPose(player.offset, { x: 0.3, y: 0.5, z: 0.3 }),
-      offsetQuat
+      offsetQuat,
+      spawnIngredient
     )
   ]
   const conveyorConfigs = [
@@ -65,31 +69,31 @@ function playerSpace(player) {
   }
 }
 
-function getCounterPose(position, rotation, distance) {
-  position = new Vector3(position.x, position.y, position.z)
-  quaternion = new Quaternion()
-    .setFromEuler(new Euler(rotation.x, rotation.y, rotation.z))
-  const offsetPosition = new Vector3(0, 0, -1)
-  offsetPosition
-    .applyQuaternion(quaternion)
-    .multiplyScalar(distance)
+// function getCounterPose(position, rotation, distance) {
+//   position = new Vector3(position.x, position.y, position.z)
+//   quaternion = new Quaternion()
+//     .setFromEuler(new Euler(rotation.x, rotation.y, rotation.z))
+//   const offsetPosition = new Vector3(0, 0, -1)
+//   offsetPosition
+//     .applyQuaternion(quaternion)
+//     .multiplyScalar(distance)
 
-  return {
-    position: position.add(offsetPosition),
-    quaternion
-  }
-}
+//   return {
+//     position: position.add(offsetPosition),
+//     quaternion
+//   }
+// }
 
-function getOffsetFromPose(pose, offset) {
-  const position = new Vector3(pose.position.x, pose.position.y, pose.position.z)
-  const quaternion = new Quaternion()
-    .setFromEuler(new Euler(pose.rotation.x, pose.rotation.y, pose.rotation.z))
-  const offsetPos = new Vector3(offset.x, offset.y, offset.z)
-  offsetPos
-    .applyQuaternion(quaternion)
-    .add(position)
+// function getOffsetFromPose(pose, offset) {
+//   const position = new Vector3(pose.position.x, pose.position.y, pose.position.z)
+//   const quaternion = new Quaternion()
+//     .setFromEuler(new Euler(pose.rotation.x, pose.rotation.y, pose.rotation.z))
+//   const offsetPos = new Vector3(offset.x, offset.y, offset.z)
+//   offsetPos
+//     .applyQuaternion(quaternion)
+//     .add(position)
 
-  return offsetPos
-}
+//   return offsetPos
+// }
 
 module.exports = playerSpace

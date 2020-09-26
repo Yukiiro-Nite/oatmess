@@ -1,3 +1,5 @@
+const TPS = 1000/30
+
 const Path = require('path')
 const RapierLoader = require('../server/rapier')
 const worldConfig = require('../server/worldConfig')
@@ -66,6 +68,10 @@ exports.config = {
         socket.emit('noRoom', msg)
         log(`[${id}] could not join room ${roomId}: room does not exist.`)
       }
+
+      if(room.engine && !room.engine.running) {
+        room.engine.start(TPS)
+      }
     },
     createRoom(io, socket, msg) {
       const id = socket.id
@@ -86,7 +92,6 @@ exports.config = {
         engine.addToWorld(worldConfig)
         engine.on('worldUpdate', (event) => io.to(roomId).emit('worldUpdate', event))
         engine.on('removeBody', (event) => io.to(roomId).emit('removeBody', event))
-        engine.start(1000 / 30)
         rooms[roomId].engine = engine
 
         return engine
@@ -136,6 +141,10 @@ exports.config = {
         delete room.players[id]
         room.isFull = Object.keys(room.players).length >= room.size
         socket.to(room.id).emit('playerLeave', { id })
+
+        if(Object.keys(room.players).length === 0) {
+          room.engine.stop()
+        }
       })
     },
     disconnect(io, socket) {

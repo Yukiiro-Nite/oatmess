@@ -1,4 +1,9 @@
-function spawner (pos, rot, rigidBodyGenerator) {
+const { Vector3 } = require('three')
+const { getOffsetFromPose } = require("../utils/vectorUtils")
+
+const defaultFrequencey = 1000
+function spawner (pos, rot, rigidBodyGenerator, spawnFrequency = defaultFrequencey) {
+  let spawnTimer
   return {
     type: 'static',
     position: { x: pos.x, y: pos.y, z: pos.z },
@@ -14,6 +19,18 @@ function spawner (pos, rot, rigidBodyGenerator) {
     meta: {
       'gltf-model': '#spawner'
     },
+    tick: function(bodyId) {
+      if(!spawnTimer) {
+        spawnTimer = setTimeout(() => {
+          spawnTimer = undefined
+
+          const offset = new Vector3(0, 0, -0.15)
+          const newPos = getOffsetFromPose({ position: pos, rotation: rot }, offset)
+          const rigidBodyConfig = rigidBodyGenerator(newPos, rot)
+          this.addToWorld({ bodies: [rigidBodyConfig] })
+        }, spawnFrequency)
+      }
+    }
   }
 }
 

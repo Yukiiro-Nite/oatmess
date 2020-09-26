@@ -1,3 +1,6 @@
+const { Vector3 } = require('three')
+const { getOffsetFromPose, xyzToRapierVector } = require("../utils/vectorUtils")
+
 function conveyor (pos, rot) {
   return {
     type: 'static',
@@ -14,6 +17,14 @@ function conveyor (pos, rot) {
     meta: {
       'gltf-model': '#conveyor'
     },
+    collisionTick: function(body1, body2) {
+      const otherBody = this.world.getRigidBody(body2)
+      const offset = new Vector3(0, 0, -0.002)
+        .applyQuaternion(rot)
+      if(otherBody) {
+        otherBody.applyForce(xyzToRapierVector(this.Rapier, offset), true)
+      }
+    }
   }
 }
 

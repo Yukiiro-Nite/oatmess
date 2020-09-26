@@ -56,6 +56,7 @@ const ready = RapierLoader.then((Rapier) => {
   class RapierEngine extends EventEmitter {
     constructor(gravityX, gravityY, gravityZ, positionThreshold = 0.001, rotationThreshold = 0.015, worldThreshold = 100) {
       super()
+      this.Rapier = Rapier
       this.positionThreshold = positionThreshold
       this.rotationThreshold = rotationThreshold
       this.worldThreshold = worldThreshold
@@ -69,6 +70,25 @@ const ready = RapierLoader.then((Rapier) => {
       }
       this.grabJointMap = {}
       this.bodiesToCull = []
+
+
+      // A map containing the current collisions.
+      // collider: colliderId -> colliderId
+      // body: bodyId -> bodyId
+      // Used to determing which collision tick handlers need to be called.
+      this.collisions = {
+        collider: {},
+        body: {}
+      }
+
+      // A map of bodyId -> tick fn
+      this.tickHandlers = {}
+      // A map of bodyId -> collision start fn
+      this.collisionStartHandlers = {}
+      // A map of bodyId -> collision tick fn
+      this.collisionTickHandlers = {}
+      // A map of bodyId -> collision end fn
+      this.collisionEndHandlers = {}
 
       return this
     }
@@ -95,6 +115,17 @@ const ready = RapierLoader.then((Rapier) => {
       if(this.bodiesToCull.length > 0) {
         this.cullBodies()
       }
+
+      Object.entries(this.tickHandlers).forEach(([bodyId, tickHandler]) => {
+        maybeCall(tickHandler, this, bodyId)
+      })
+
+      Object.entries(this.collisionTickHandlers).forEach(([bodyId, collisionTickHandler]) => {
+        const colliding = this.collisions.body[bodyId] || {}
+        Object.keys(colliding).forEach((bodyId2) => {
+          maybeCall(collisionTickHandler, this, bodyId, bodyId2)
+        })
+      })
 
       if(this.running) {
         this.currentTimeout = setTimeout(() => this.gameTick(tps), tps)
@@ -143,6 +174,7 @@ const ready = RapierLoader.then((Rapier) => {
 
       this.eventQueue.drainContactEvents((handle1, handle2, started) => {
         worldState.events.push({ handle1, handle2, started })
+        this.updateCollisions(handle1, handle2, started)
       })
 
       // Skipping proximity events, I don't think they are useful for this app.
@@ -390,7 +422,13 @@ const ready = RapierLoader.then((Rapier) => {
         delete this.meta.collider[colliderId]
       }
 
-      delete this.meta.body[body.handle()]
+      this.removeBodyCollisions(bodyId)
+
+      delete this.meta.body[bodyId]
+      delete this.tickHandlers[bodyId]
+      delete this.collisionStartHandlers[bodyId]
+      delete this.collisionTickHandlers[bodyId]
+      delete this.collisionEndHandlers[bodyId]
 
       this.world.removeRigidBody(body)
       this.emit('removeBody', { id: bodyId })
@@ -398,28 +436,133 @@ const ready = RapierLoader.then((Rapier) => {
 
     addToWorld(worldConfig) {
       const namedBodies = {}
-      worldConfig.bodies.forEach((bodyConfig) => {
-        const body = this.createRigidBody(bodyConfig)
-        if(bodyConfig.effect && bodyConfig.effect instanceof Function) {
-          bodyConfig.effect(body, Rapier)
-        }
-        if(bodyConfig.name) {
-          namedBodies[bodyConfig.name] = body
-        }
-      })
 
-      worldConfig.joints.forEach((joint) => {
-        joint.handle1 = namedBodies[joint.body1].handle()
-        joint.handle2 = namedBodies[joint.body2].handle()
+      worldConfig.bodies
+        && worldConfig.bodies.length > 0
+        && worldConfig.bodies.forEach((bodyConfig) => {
+          const body = this.createRigidBody(bodyConfig)
+          const bodyId = body.handle()
+          maybeCall(bodyConfig.postInit, this, body, Rapier)
 
-        this.createJoint(joint)
-      })
+          if(bodyConfig.name) {
+            namedBodies[bodyConfig.name] = body
+          }
+
+          if(isFunction(bodyConfig.tick)) {
+            this.tickHandlers[bodyId] = bodyConfig.tick
+          }
+
+          if(isFunction(bodyConfig.collisionStart)) {
+            this.collisionStartHandlers[bodyId] = bodyConfig.collisionStart
+          }
+
+          if(isFunction(bodyConfig.collisionTick)) {
+            this.collisionTickHandlers[bodyId] = bodyConfig.collisionTick
+          }
+
+          if(isFunction(bodyConfig.collisionEnd)) {
+            this.collisionEndHandlers[bodyId] = bodyConfig.collisionEnd
+          }
+        })
+
+      worldConfig.joints
+        && worldConfig.joints.length > 0
+        && worldConfig.joints.forEach((joint) => {
+          joint.handle1 = namedBodies[joint.body1].handle()
+          joint.handle2 = namedBodies[joint.body2].handle()
+
+          this.createJoint(joint)
+        })
     }
 
     cullBodies() {
       while(this.bodiesToCull.length > 0) {
         this.removeRigidBody(this.bodiesToCull.pop())
       }
+    }
+
+    updateCollisions(handle1, handle2, started) {
+      const collider1 = this.world.getCollider(handle1)
+      const collider2 = this.world.getCollider(handle2)
+      const parent1 = collider1.parent()
+      const parent2 = collider2.parent()
+      const parentHandle1 = parent1.handle()
+      const parentHandle2 = parent2.handle()
+
+      if(started) {
+        this.addCollision(handle1, handle2)
+
+        maybeCall(this.collisionStartHandlers[parentHandle1], this, parentHandle1, parentHandle2)
+        maybeCall(this.collisionStartHandlers[parentHandle2], this, parentHandle2, parentHandle1)
+      } else {
+        this.removeCollision(handle1, handle2)
+
+        maybeCall(this.collisionEndHandlers[parentHandle1], this, parentHandle1, parentHandle2)
+        maybeCall(this.collisionEndHandlers[parentHandle2], this, parentHandle2, parentHandle1)
+      }
+    }
+
+    addCollision(handle1, handle2) {
+      const collider1 = this.world.getCollider(handle1)
+      const collider2 = this.world.getCollider(handle2)
+      const parent1 = collider1.parent()
+      const parent2 = collider2.parent()
+      const parentHandle1 = parent1.handle()
+      const parentHandle2 = parent2.handle()
+
+      this.collisions.collider[handle1] = {
+        ...this.collisions.collider[handle1],
+        [handle2]: true
+      }
+      this.collisions.collider[handle2] = {
+        ...this.collisions.collider[handle2],
+        [handle1]: true
+      }
+      this.collisions.body[parentHandle1] = {
+        ...this.collisions.body[parentHandle1],
+        [parentHandle2]: true
+      }
+      this.collisions.body[parentHandle2] = {
+        ...this.collisions.body[parentHandle2],
+        [parentHandle1]: true
+      }
+    }
+
+    removeCollision(handle1, handle2) {
+      const collider1 = this.world.getCollider(handle1)
+      const collider2 = this.world.getCollider(handle2)
+      const parent1 = collider1.parent()
+      const parent2 = collider2.parent()
+      const parentHandle1 = parent1.handle()
+      const parentHandle2 = parent2.handle()
+
+      delete this.collisions.collider[handle1][handle2]
+      delete this.collisions.collider[handle2][handle1]
+      delete this.collisions.body[parentHandle1][parentHandle2]
+      delete this.collisions.body[parentHandle2][parentHandle1]
+    }
+
+    removeBodyCollisions(bodyId) {
+      const body = this.world.getRigidBody(bodyId)
+
+      forColliders(body, (collider) => {
+        const colliderId = collider.handle()
+        const colliding = this.collisions.collider[colliderId] || {}
+
+        Object.keys(colliding, (colliderId2) => {
+          delete this.collisions.collider[colliderId2][colliderId]
+        })
+
+        delete this.collisions.collider[colliderId]
+      })
+
+      const bodyColliding = this.collisions.body[bodyId] || {}
+      Object.keys(bodyColliding, (bodyId2) => {
+        delete this.collisions.body[bodyId2][bodyId]
+        maybeCall(this.collisionEndHandlers[bodyId2], this, bodyId2, bodyId)
+      })
+
+      delete this.collisions.body[bodyId]
     }
   }
 
@@ -547,6 +690,34 @@ function outOfBounds(position, threshold) {
   return Math.abs(position.x) > threshold
     || Math.abs(position.y) > threshold
     || Math.abs(position.z) > threshold
+}
+
+function isFunction(maybeFn) {
+  return maybeFn && maybeFn instanceof Function
+}
+
+function maybeCall(fn, thisArg, ...args) {
+  if(isFunction(fn)) {
+    return fn.call(thisArg, ...args)
+  }
+}
+
+function forColliders(body, forEachFn) {
+  const colliderCount = body.numColliders()
+
+  for(let i=0; i < colliderCount; i++){
+    forEachFn(body.collider(i), i)
+  }
+}
+
+function mapColliders(body, mapFn) {
+  const mappedColliders = []
+
+  forColliders(body, (collider, index) => {
+    mappedColliders.push(mapFn(collider, index))
+  })
+
+  return mappedColliders
 }
 
 module.exports = {

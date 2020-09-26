@@ -4,5 +4,6 @@ module.exports = {
   room: require('./room'),
   playerSpace: require('./playerSpace'),
   spawner: require('./spawner'),
-  conveyor: require('./conveyor')
+  conveyor: require('./conveyor'),
+  spawnIngredients: require('./spawnIngredient')
 }
