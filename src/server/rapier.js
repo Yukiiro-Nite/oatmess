@@ -312,28 +312,30 @@ const ready = RapierLoader.then((Rapier) => {
       }
 
       const grabbedBody = this.world.getRigidBody(options.bodyId)
-      grabbedBody.wakeUp()
-      const grabbingBody = this.createRigidBody({
-        type: 'kinematic',
-        position: options.position
-      })
-      const grabbedId = grabbedBody.handle()
-      const grabbingId = grabbingBody.handle()
+      if(grabbedBody) {
+        grabbedBody.wakeUp()
+        const grabbingBody = this.createRigidBody({
+          type: 'kinematic',
+          position: options.position
+        })
+        const grabbedId = grabbedBody.handle()
+        const grabbingId = grabbingBody.handle()
 
-      const grabJoint = this.createJoint({
-        type: 'ball',
-        handle1: grabbingId,
-        handle2: grabbedId
-      })
+        const grabJoint = this.createJoint({
+          type: 'ball',
+          handle1: grabbingId,
+          handle2: grabbedId
+        })
 
-      this.grabJointMap[options.id] = {
-        ...this.grabJointMap[options.id],
-        [options.part]: {
-          grabbingId,
-          grabbedId,
-          grabJoint,
-          srcPose: options.srcPose,
-          grabOrigin: options.position
+        this.grabJointMap[options.id] = {
+          ...this.grabJointMap[options.id],
+          [options.part]: {
+            grabbingId,
+            grabbedId,
+            grabJoint,
+            srcPose: options.srcPose,
+            grabOrigin: options.position
+          }
         }
       }
     }
