@@ -57,7 +57,8 @@ exports.config = {
         socket.emit('players', room.players)
         if(room.engine) {
           const spaceConfig = structures.playerSpace(newPlayer)
-          room.engine.addToWorld(spaceConfig)
+          const structureIds = room.engine.addToWorld(spaceConfig)
+          newPlayer.space = structureIds
           socket.emit('worldUpdate', room.engine.getWorldState())
         }
         log(`[${id}] joined room ${roomId}`)
@@ -129,7 +130,11 @@ exports.config = {
       const id = socket.id
       forRooms(socket, room => {
         if(room.engine) {
+          const playerSpace = room.players[id].space
           room.engine.removePlayerGrabJoints(id)
+          playerSpace.bodies.forEach((bodyId) => {
+            room.engine.removeRigidBodyById(bodyId)
+          })
         }
         delete room.players[id]
         room.isFull = Object.keys(room.players).length >= room.size

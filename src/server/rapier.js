@@ -412,6 +412,14 @@ const ready = RapierLoader.then((Rapier) => {
       }
     }
 
+    removeRigidBodyById(bodyId) {
+      const body = this.world.getRigidBody(bodyId)
+      if(body) {
+        this.removeRigidBody(body)
+        return bodyId
+      }
+    }
+
     removeRigidBody(body) {
       const bodyId = body.handle()
       const colliderCount = body.numColliders()
@@ -437,9 +445,9 @@ const ready = RapierLoader.then((Rapier) => {
     addToWorld(worldConfig) {
       const namedBodies = {}
 
-      worldConfig.bodies
+      const bodyIds = worldConfig.bodies
         && worldConfig.bodies.length > 0
-        && worldConfig.bodies.forEach((bodyConfig) => {
+        && worldConfig.bodies.map((bodyConfig) => {
           const body = this.createRigidBody(bodyConfig)
           const bodyId = body.handle()
           maybeCall(bodyConfig.postInit, this, body, Rapier)
@@ -463,16 +471,23 @@ const ready = RapierLoader.then((Rapier) => {
           if(isFunction(bodyConfig.collisionEnd)) {
             this.collisionEndHandlers[bodyId] = bodyConfig.collisionEnd
           }
+
+          return bodyId
         })
 
-      worldConfig.joints
+      const jointIds = worldConfig.joints
         && worldConfig.joints.length > 0
-        && worldConfig.joints.forEach((joint) => {
+        && worldConfig.joints.map((joint) => {
           joint.handle1 = namedBodies[joint.body1].handle()
           joint.handle2 = namedBodies[joint.body2].handle()
 
-          this.createJoint(joint)
+          return this.createJoint(joint).handle()
         })
+
+      return {
+        bodies: bodyIds || [],
+        joints: jointIds || []
+      }
     }
 
     cullBodies() {
