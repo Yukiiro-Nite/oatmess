@@ -317,18 +317,20 @@ const ready = RapierLoader.then((Rapier) => {
         type: 'kinematic',
         position: options.position
       })
+      const grabbedId = grabbedBody.handle()
+      const grabbingId = grabbingBody.handle()
 
       const grabJoint = this.createJoint({
         type: 'ball',
-        handle1: grabbingBody.handle(),
-        handle2: grabbedBody.handle()
+        handle1: grabbingId,
+        handle2: grabbedId
       })
 
       this.grabJointMap[options.id] = {
         ...this.grabJointMap[options.id],
         [options.part]: {
-          grabbingBody,
-          grabbedBody,
+          grabbingId,
+          grabbedId,
           grabJoint,
           srcPose: options.srcPose,
           grabOrigin: options.position
@@ -366,8 +368,9 @@ const ready = RapierLoader.then((Rapier) => {
         && this.grabJointMap[options.id][options.part]
       if(grabJointData) {
         const newPos = applyPose(grabJointData.grabOrigin, grabJointData.srcPose, options.newPose)
+        const grabbingBody = this.world.getRigidBody(grabJointData.grabbingId)
 
-        grabJointData.grabbingBody.setTranslation(newPos.x, newPos.y, newPos.z)
+        grabbingBody && grabbingBody.setTranslation(newPos.x, newPos.y, newPos.z)
       }
     }
 
@@ -391,11 +394,12 @@ const ready = RapierLoader.then((Rapier) => {
       const grabJointData = this.grabJointMap[options.id]
         && this.grabJointMap[options.id][options.part]
       if(grabJointData) {
-        const grabbingBodyId = grabJointData.grabbingBody.handle()
-        this.removeRigidBody(grabJointData.grabbingBody)
+        const grabbingBodyId = grabJointData.grabbingId
+        this.removeRigidBodyById(grabJointData.grabbingId)
         if(options.velocity) {
+          const grabbedBody = this.world.getRigidBody(grabJointData.grabbedId)
           const vel = new Rapier.Vector(options.velocity.x, options.velocity.y, options.velocity.z)
-          grabJointData.grabbedBody.applyForce(vel)
+          grabbedBody && grabbedBody.applyForce(vel)
         }
         delete this.grabJointMap[options.id][options.part]
         return grabbingBodyId
