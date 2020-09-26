@@ -61,7 +61,10 @@ AFRAME.registerSystem('physics-server', {
   createBody: function(id, body) {
     const pos = body.position
     const quat = new AFRAME.THREE.Quaternion(body.rotation.x, body.rotation.y, body.rotation.z, body.rotation.w)
-    const rot = new AFRAME.THREE.Euler().setFromQuaternion(quat)
+    const rot = new AFRAME.THREE.Euler()
+      .setFromQuaternion(quat)
+      .toVector3()
+      .multiplyScalar(180 / Math.PI)
     const meta = AFRAME.utils.extendDeep({}, this.bodyDefaults, body.meta)
     const hideColliders = !!meta['gltf-model']
     const el = htmlToElement(`
@@ -96,7 +99,10 @@ AFRAME.registerSystem('physics-server', {
     const colliderId = `collider-${collider.id}`
     const pos = collider.position
     const quat = new AFRAME.THREE.Quaternion(collider.rotation.x, collider.rotation.y, collider.rotation.z, collider.rotation.w)
-    const rot = new AFRAME.THREE.Euler().setFromQuaternion(quat)
+    const rot = new AFRAME.THREE.Euler()
+      .setFromQuaternion(quat)
+      .toVector3()
+      .multiplyScalar(180 / Math.PI)
     const meta = AFRAME.utils.extendDeep({}, this.colliderDefaults, collider.meta)
     let el
 
