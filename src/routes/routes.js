@@ -125,13 +125,6 @@ exports.config = {
         }
       })
     },
-    removeBodyByCollider(io, socket, msg) {
-      forRooms(socket, room => {
-        if(room.engine) {
-          room.engine.removeRigidBodyByCollider(msg.colliderId)
-        }
-      })
-    },
     disconnecting(io, socket) {
       const id = socket.id
       forRooms(socket, room => {

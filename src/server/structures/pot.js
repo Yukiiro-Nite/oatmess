@@ -91,8 +91,10 @@ function pot(pos, rot = defaultRotation, size) {
         density: 1,
         meta: { color: '#442a1e' }
       }],
-      meta: {
-        'remove-collided': ''
+      meta: {},
+      collisionStart: function(body1, body2) {
+        const otherBody = this.world.getRigidBody(body2)
+        this.removeRigidBody(otherBody)
       }
     }
   ]

@@ -165,16 +165,16 @@ const ready = RapierLoader.then((Rapier) => {
         events: []
       }
 
+      this.eventQueue.drainContactEvents((handle1, handle2, started) => {
+        worldState.events.push({ handle1, handle2, started })
+        this.updateCollisions(handle1, handle2, started)
+      })
+
       this.world.forEachRigidBody((body) => {
         worldState.bodies.push(serializeBody(body, this.meta))
         if(outOfBounds(body.translation(), this.worldThreshold)) {
           this.bodiesToCull.push(body)
         }
-      })
-
-      this.eventQueue.drainContactEvents((handle1, handle2, started) => {
-        worldState.events.push({ handle1, handle2, started })
-        this.updateCollisions(handle1, handle2, started)
       })
 
       // Skipping proximity events, I don't think they are useful for this app.
