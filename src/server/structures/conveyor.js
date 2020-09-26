@@ -1,7 +1,8 @@
 const { Vector3 } = require('three')
-const { getOffsetFromPose, xyzToRapierVector } = require("../utils/vectorUtils")
+const { rapierVectorToThree } = require("../utils/vectorUtils")
+const defaultSpeed = -0.004
 
-function conveyor (pos, rot) {
+function conveyor (pos, rot, speed = defaultSpeed) {
   return {
     type: 'static',
     position: { x: pos.x, y: pos.y, z: pos.z },
@@ -19,10 +20,11 @@ function conveyor (pos, rot) {
     },
     collisionTick: function(body1, body2) {
       const otherBody = this.world.getRigidBody(body2)
-      const offset = new Vector3(0, 0, -0.002)
+      const offset = new Vector3(0, 0, speed)
         .applyQuaternion(rot)
       if(otherBody) {
-        otherBody.applyForce(xyzToRapierVector(this.Rapier, offset), true)
+        const newPosition = rapierVectorToThree(otherBody.translation()).add(offset)
+        otherBody.setTranslation(newPosition.x, newPosition.y, newPosition.z, true)
       }
     }
   }

@@ -33,9 +33,6 @@ function playerSpace(player) {
     undefined,
     { width: 0.4, height: 0.4, depth: 0.4, thickness: 0.02 }
   )
-  const appleConfig = [
-    apple({ ...player.offset.position, y: 0.5 })
-  ]
   const spawnerConfigs = [
     spawner(
       getOffsetFromPose(player.offset, { x: -0.3, y: 0.5, z: 0.3 }),
@@ -61,7 +58,6 @@ function playerSpace(player) {
   return {
     bodies: [
       ...potConfig,
-      ...appleConfig,
       ...spawnerConfigs,
       ...conveyorConfigs
     ],
