@@ -93,8 +93,7 @@ function pot(pos, rot = defaultRotation, size) {
       }],
       meta: {},
       collisionStart: function(body1, body2) {
-        const otherBody = this.world.getRigidBody(body2)
-        this.removeRigidBody(otherBody)
+        this.removeRigidBodyById(body2)
       }
     }
   ]

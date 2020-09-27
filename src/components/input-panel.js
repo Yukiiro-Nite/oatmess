@@ -2,7 +2,6 @@ AFRAME.registerComponent('input-panel', {
   schema: {},
   events: {
     click: function (event) {
-      console.log('input-panel click event: ', event)
       const handler = this.handlers[event.target.value]
       if(handler && handler instanceof Function) {
         handler()
