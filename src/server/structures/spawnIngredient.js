@@ -1,7 +1,9 @@
 const apple = require('./apple')
+const banana = require('./banana')
 
 const ingredients = [
-  apple
+  apple,
+  banana
 ]
 
 function spawnIngredient(pos, rot) {
