@@ -11,91 +11,145 @@ function playerReady(pose, playerId, gameState) {
   const indicatorRotation = multiply(pose.rotation, { x: -Math.PI / 2, y: Math.PI, z: 0 })
 
   return [
-    {
-      type: 'static',
-      position: buttonPosition,
-      rotation: buttonRotation,
-      colliders: [{
-        type: 'cuboid',
-        width: 0.1,
-        height: 0.02,
-        depth: 0.1,
-        meta: {
-          button: {
-            iconScale: '0.08 0.08 0.08',
-            buttonModel: '#checkmark',
-            value: 'ready'
-          },
-          mixin: 'buttonStyle',
-          color: green,
-          'player-ready': 'on: click;'
-        }
-      }],
-      meta: {
-        name: `statusSwitch-${playerId}`,
-        visible: true
-      },
-      postInit: function (body) {
-        const bodyId = body.handle()
-        gameState.on('readyChange', (changes) => {
-          const playerChange = changes.find(change => change.id === playerId)
-          if(playerChange) {
-            const buttonColliderId = body.collider(0).handle()
-            const meta = this.meta.collider[buttonColliderId]
-            if(meta) {
-              meta.color = playerChange.state
-                ? red
-                : green
-              meta.button.buttonModel = playerChange.state
-                ? '#clear'
-                : '#checkmark'
-              meta.button.value = playerChange.state
-                ? 'not ready'
-                : 'ready'
-            }
-          }
-        })
-      }
-    },
-    {
-      type: 'static',
-      position: indicatorPosition,
-      rotation: indicatorRotation,
-      meta: {
-        name: `statusIndicator-${playerId}`,
-        button: {
-          iconScale: '0.16 0.16 0.16',
-          buttonModel: '#clear'
-        },
-        geometry: {
-          primitive: 'box',
-          width: 0.2,
-          height: 0.04,
-          depth: 0.2,
-        },
-        material: {
-          color: red
-        }
-      },
-      postInit: function (body) {
-        const bodyId = body.handle()
-        gameState.on('readyChange', (changes) => {
-          const playerChange = changes.find(change => change.id === playerId)
-          if(playerChange) {
-            const meta = this.meta.body[bodyId]
-            if(meta) {
-              meta.material.color = playerChange.state
-                ? green
-                : red
-              meta.button.buttonModel = playerChange.state
-                ? '#checkmark'
-                : '#clear'
-            }
-          }
-        })
-      }
-    },
+    readyButton(buttonPosition, buttonRotation, playerId, gameState),
+    notReadyIndicator(indicatorPosition, indicatorRotation, playerId, gameState)
   ]
+}
+
+const button = (position, rotation, playerId) => ({
+  type: 'static',
+  position,
+  rotation,
+  colliders: [{
+    type: 'cuboid',
+    width: 0.1,
+    height: 0.02,
+    depth: 0.1,
+    meta: {
+      button: {
+        iconScale: '0.08 0.08 0.08',
+        buttonModel: '#checkmark',
+        value: 'ready'
+      },
+      mixin: 'buttonStyle',
+      color: green,
+      'player-ready': 'on: click;'
+    }
+  }],
+  meta: {
+    name: `statusSwitch-${playerId}`,
+    visible: true
+  }
+})
+
+function readyButton(position, rotation, playerId, gameState) {
+  const buttonConfig = button(position, rotation, playerId)
+
+  buttonConfig.postInit = function (body) {
+    const bodyId = body.handle()
+    const engine = this
+    gameState.on('readyChange', function swapToNotReady(changes) {
+      const playerChange = changes.find(change => change.id === playerId)
+      if(playerChange && playerChange.state) {
+        gameState.removeListener('readyChange', swapToNotReady)
+        engine.removeRigidBodyById(bodyId)
+        const nextButton = notReadyButton(position, rotation, playerId, gameState)
+        engine.addToWorld({ bodies: [nextButton] })
+      }
+    })
+  }
+
+  return buttonConfig
+}
+
+function notReadyButton(position, rotation, playerId, gameState) {
+  const buttonConfig = button(position, rotation, playerId)
+
+  buttonConfig.colliders[0].meta.button.buttonModel = '#clear'
+  buttonConfig.colliders[0].meta.button.value = 'not ready'
+  buttonConfig.colliders[0].meta.color = red
+  buttonConfig.postInit = function (body) {
+    const bodyId = body.handle()
+    const engine = this
+    gameState.on('readyChange', function swapToReady(changes) {
+      const playerChange = changes.find(change => change.id === playerId)
+      if(playerChange && !playerChange.state) {
+        gameState.removeListener('readyChange', swapToReady)
+        engine.removeRigidBodyById(bodyId)
+        const nextButton = readyButton(position, rotation, playerId, gameState)
+        engine.addToWorld({ bodies: [nextButton] })
+      }
+    })
+  }
+
+  return buttonConfig
+}
+
+const indicator = (position, rotation, playerId) => ({
+  type: 'static',
+  position,
+  rotation,
+  meta: {
+    name: `statusIndicator-${playerId}`,
+    button: {
+      iconScale: '0.16 0.16 0.16',
+      buttonModel: '#clear'
+    },
+    // used for positioning the button. Normally button expects to be on an a-box
+    // TODO: Replace button height code to use geometry instead of attributes
+    height: 0.04,
+    geometry: {
+      primitive: 'box',
+      width: 0.2,
+      height: 0.04,
+      depth: 0.2,
+    },
+    material: {
+      color: red
+    }
+  }
+})
+
+function readyIndicator(position, rotation, playerId, gameState) {
+  const indicatorConfig = indicator(position, rotation, playerId)
+
+  indicatorConfig.meta.button.buttonModel = '#checkmark'
+  indicatorConfig.meta.material.color = green
+  indicatorConfig.postInit = function (body) {
+    const bodyId = body.handle()
+    const engine = this
+    gameState.on('readyChange', function swapToReady(changes) {
+      const playerChange = changes.find(change => change.id === playerId)
+      if(playerChange && !playerChange.state) {
+        gameState.removeListener('readyChange', swapToReady)
+        engine.removeRigidBodyById(bodyId)
+        const nextButton = notReadyIndicator(position, rotation, playerId, gameState)
+        engine.addToWorld({ bodies: [nextButton] })
+      }
+    })
+  }
+
+  return indicatorConfig
+}
+
+function notReadyIndicator(position, rotation, playerId, gameState) {
+  const indicatorConfig = indicator(position, rotation, playerId)
+
+  indicatorConfig.postInit = function (body) {
+    const bodyId = body.handle()
+    const engine = this
+    gameState.on('readyChange', function swapToReady(changes) {
+      const playerChange = changes.find(change => change.id === playerId)
+      if(playerChange && playerChange.state) {
+        gameState.removeListener('readyChange', swapToReady)
+        engine.removeRigidBodyById(bodyId)
+        const nextButton = readyIndicator(position, rotation, playerId, gameState)
+        engine.addToWorld({ bodies: [nextButton] })
+      }
+    })
+  }
+
+  return indicatorConfig
 }
 
 module.exports = playerReady

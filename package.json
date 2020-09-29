@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@dimforge/rapier3d": "^0.1.17",
-    "deep-equal": "^2.0.3",
+    "lodash": "^4.17.20",
     "three": "^0.120.1"
   },
   "devDependencies": {

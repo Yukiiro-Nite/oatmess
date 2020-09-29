@@ -1,6 +1,6 @@
 const { EventEmitter } = require('events')
 const { Vector3, Quaternion } = require('three')
-const deepEqual = require('deep-equal')
+const { cloneDeep, isEqual } = require('lodash')
 
 // Hack to get world.step working
 const { performance } = require('perf_hooks');
@@ -141,10 +141,8 @@ const ready = RapierLoader.then((Rapier) => {
 
         const dist = distance(oldBody.position, body.position)
         const angle = angleTo(oldBody.rotation, body.rotation)
-        const metaChange = !deepEqual(body.meta, oldBody.meta)
         const needsUpdate = dist >= this.positionThreshold
           || angle >= this.rotationThreshold
-          || metaChange
 
         if(needsUpdate) {
           this.oldBodyMap[body.id] = body
@@ -439,6 +437,7 @@ const ready = RapierLoader.then((Rapier) => {
         delete this.meta.collider[colliderId]
       }
 
+      delete this.oldBodyMap[bodyId]
       delete this.meta.body[bodyId]
       delete this.tickHandlers[bodyId]
       delete this.collisionStartHandlers[bodyId]
@@ -592,7 +591,7 @@ function serializeBody(body, meta = {}) {
       w: rot.w
     },
     colliders,
-    meta: meta.body[id]
+    meta: cloneDeep(meta.body[id])
   }
 }
 

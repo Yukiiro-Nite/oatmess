@@ -48,7 +48,7 @@ class GameState extends EventEmitter {
     })
 
     const readyState = Object.values(this.players)
-      .map(player => ({ id: player.id, ready: player.ready }))
+      .map(player => ({ id: player.id, state: player.ready }))
 
     this.emit('readyChange', readyState)
   }
