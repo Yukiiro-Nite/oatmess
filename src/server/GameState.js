@@ -67,7 +67,7 @@ class GameState extends EventEmitter {
     this.started = false
     const scores = Object.values(this.players)
       .map(player => player.score)
-    const highestScore = Math.max(scores)
+    const highestScore = Math.max(...scores)
     const winners = Object.values(this.players)
       .filter(player => player.score === highestScore)
       .map(player => player.id)
