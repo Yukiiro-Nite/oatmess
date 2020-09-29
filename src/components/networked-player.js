@@ -46,6 +46,9 @@ AFRAME.registerSystem('networked-player', {
     this.handlePlayerUpdate = AFRAME.utils.bind(this.handlePlayerUpdate, this)
     this.handlePlayerLeave = AFRAME.utils.bind(this.handlePlayerLeave, this)
 
+    this.handleGameStart = AFRAME.utils.bind(this.handleGameStart, this)
+    this.handleGameEnd = AFRAME.utils.bind(this.handleGameEnd, this)
+
     this.joinRoom = AFRAME.utils.bind(this.joinRoom, this)
     this.emitPlayerUpdate = AFRAME.utils.bind(this.emitPlayerUpdate, this)
     this.attachNetworkedPlayer = AFRAME.utils.bind(this.attachNetworkedPlayer, this)
@@ -63,6 +66,9 @@ AFRAME.registerSystem('networked-player', {
     this.socket.on('playerJoin', this.handlePlayerJoin)
     this.socket.on('playerUpdate', this.handlePlayerUpdate)
     this.socket.on('playerLeave', this.handlePlayerLeave)
+
+    this.socket.on('gameStart', this.handleGameStart)
+    this.socket.on('gameEnd', this.handleGameEnd)
   },
   handleFullRoom: function (msg) {
     console.log('Got socket event: fullRoom', msg)
@@ -100,6 +106,12 @@ AFRAME.registerSystem('networked-player', {
     playerHead && this.el.removeChild(playerHead)
     playerRightHand && this.el.removeChild(playerRightHand)
     playerLeftHand && this.el.removeChild(playerLeftHand)
+  },
+  handleGameStart: function(msg) {
+    console.log('game started: ', msg)
+  },
+  handleGameEnd: function(msg) {
+    console.log('game ended: ', msg)
   },
   joinRoom: function (roomId) {
     this.socket.emit('joinRoom', { roomId })

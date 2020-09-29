@@ -1,8 +1,6 @@
 AFRAME.registerSystem('physics-server', {
   schema: {},
-  bodyDefaults: {
-
-  },
+  bodyDefaults: {},
   colliderDefaults: {
     color: '#ff00ff'
   },
@@ -85,8 +83,13 @@ AFRAME.registerSystem('physics-server', {
   },
   updateBody: function(el, body) {
     if(el && el.object3D) {
+      const meta = AFRAME.utils.extendDeep({}, this.bodyDefaults, body.meta)
       el.object3D.position.copy(body.position)
       el.object3D.quaternion.copy(body.rotation)
+
+      // Object.entries(meta).forEach((key, value) => {
+      //   el.setAttribute(key, this.stringifyMeta(value))
+      // })
     }
   },
   removeBody: function(msg) {
@@ -137,8 +140,13 @@ AFRAME.registerSystem('physics-server', {
   updateCollider: function(el, collider) {
     // TODO: update this later if needed.
     if(el && el.object3D) {
+      const meta = AFRAME.utils.extendDeep({}, this.colliderDefaults, collider.meta)
       el.object3D.position.copy(collider.position)
       el.object3D.quaternion.copy(collider.rotation)
+
+      // Object.entries(meta).forEach((key, value) => {
+      //   el.setAttribute(key, this.stringifyMeta(value))
+      // })
     }
   },
   metaToAttributes: function(meta) {
@@ -148,7 +156,7 @@ AFRAME.registerSystem('physics-server', {
       let str = ''
 
       Object.entries(meta).forEach(([key, value]) => {
-        str += `${key}=${this.stringifyMeta(value)}\n`
+        str += `${key}="${this.stringifyMeta(value)}"\n`
       })
 
       return str

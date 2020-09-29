@@ -1,10 +1,13 @@
-const TPS = 1000/30
+const second = 1000
+const minute = 60 * second
+const TPS = second/30
 
 const Path = require('path')
 const RapierLoader = require('../server/rapier')
 const worldConfig = require('../server/worldConfig')
 const structures = require('../server/structures')
 const { getPlayerPlacement, getNextIndex } = require('./playerPosition')
+const GameState = require('../server/GameState')
 /**
  * rooms = {
  *   [roomId]: {
@@ -51,12 +54,13 @@ exports.config = {
         const newPlayer = { id, roomId, index, offset }
         room.players[id] = newPlayer
         room.isFull = Object.keys(room.players).length >= room.size
+        room.gameState.addPlayer(id)
         socket.join(roomId)
         socket.to(roomId).emit('playerJoin', newPlayer)
         socket.emit('joinRoomSuccess', newPlayer)
         socket.emit('players', room.players)
         if(room.engine) {
-          const spaceConfig = structures.playerSpace(newPlayer)
+          const spaceConfig = structures.playerSpace(newPlayer, room.gameState)
           const structureIds = room.engine.addToWorld(spaceConfig)
           newPlayer.space = structureIds
           socket.emit('worldUpdate', room.engine.getWorldState())
@@ -79,13 +83,18 @@ exports.config = {
       const roomId = generateId()
 
       log(`[${id}] created room ${roomId}`)
+      const gameState = new GameState(0.5 * minute)
+
+      gameState.on('gameStart', (event) => io.to(roomId).emit('gameStart', event))
+      gameState.on('gameEnd', (event) => io.to(roomId).emit('gameEnd', event))
       
       rooms[roomId] = {
         id: roomId,
         players: {},
         isFull: false,
         size: msg.size,
-        owner: id
+        owner: id,
+        gameState
       }
 
       const engineReady = RapierLoader.ready.then(({ RapierEngine, Rapier }) => {
@@ -110,6 +119,11 @@ exports.config = {
         socket.to(room.id).emit('playerUpdate', { ...msg, id })
       })
     },
+    playerReady(io,  socket, msg) {
+      forRooms(socket, room => {
+        room.gameState.setReady(socket.id, msg.state)
+      })
+    },
     grab(io, socket, msg) {
       msg.id = socket.id
       forRooms(socket, room => {
@@ -129,6 +143,7 @@ exports.config = {
     disconnecting(io, socket) {
       const id = socket.id
       forRooms(socket, room => {
+        room.gameState.removePlayer(id)
         if(room.engine) {
           const playerSpace = room.players[id].space
           room.engine.removePlayerGrabJoints(id)
@@ -142,6 +157,7 @@ exports.config = {
 
         if(Object.keys(room.players).length === 0) {
           room.engine.stop()
+          room.gameState.endGame()
         }
       })
     },

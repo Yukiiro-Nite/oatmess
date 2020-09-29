@@ -10,7 +10,7 @@ const defaultRotation = { x: 0, y: 0, z: 0, w: 0 }
  * @param {number} size.depth - Depth of the pot.
  * @param {number} size.thickness - Thickness of the walls of the pot.
  */
-function pot(pos, rot = defaultRotation, size) {
+function pot(pos, rot = defaultRotation, size, playerId, gameState) {
   const { x, y, z } = pos
   const {
     width: w,
@@ -93,7 +93,12 @@ function pot(pos, rot = defaultRotation, size) {
       }],
       meta: {},
       collisionStart: function(body1, body2) {
-        this.removeRigidBodyById(body2)
+        const meta = this.meta.body[body2]
+        if(meta.taste !== undefined && gameState.started) {
+          gameState.addScore(playerId, meta.taste)
+
+          this.removeRigidBodyById(body2)
+        }
       }
     }
   ]

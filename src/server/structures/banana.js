@@ -18,7 +18,8 @@ function banana(pos, rot = defaultRotation) {
     }],
     meta: {
       grabbable: true,
-      'gltf-model': '#banana'
+      'gltf-model': '#banana',
+      taste: 1
     },
   }
 }

@@ -18,7 +18,8 @@ function apple(pos, rot = defaultRotation) {
     }],
     meta: {
       grabbable: true,
-      'gltf-model': '#apple'
+      'gltf-model': '#apple',
+      taste: 1
     },
   }
 }

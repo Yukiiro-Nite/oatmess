@@ -1,5 +1,6 @@
 const { EventEmitter } = require('events')
 const { Vector3, Quaternion } = require('three')
+const deepEqual = require('deep-equal')
 
 // Hack to get world.step working
 const { performance } = require('perf_hooks');
@@ -140,8 +141,12 @@ const ready = RapierLoader.then((Rapier) => {
 
         const dist = distance(oldBody.position, body.position)
         const angle = angleTo(oldBody.rotation, body.rotation)
+        const metaChange = !deepEqual(body.meta, oldBody.meta)
+        const needsUpdate = dist >= this.positionThreshold
+          || angle >= this.rotationThreshold
+          || metaChange
 
-        if(dist >= this.positionThreshold || angle >= this.rotationThreshold) {
+        if(needsUpdate) {
           this.oldBodyMap[body.id] = body
           return true
         }
