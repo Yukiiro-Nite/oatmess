@@ -38,6 +38,8 @@ AFRAME.registerSystem('networked-player', {
   init: function () {
     this.socket = io()
 
+    this.handlePlayerId = AFRAME.utils.bind(this.handlePlayerId, this)
+
     this.handleFullRoom = AFRAME.utils.bind(this.handleFullRoom, this)
     this.handleNoRoom = AFRAME.utils.bind(this.handleNoRoom, this)
     this.handleJoinRoomSuccess = AFRAME.utils.bind(this.handleJoinRoomSuccess, this)
@@ -58,6 +60,7 @@ AFRAME.registerSystem('networked-player', {
     this.createRoomIdOutput = AFRAME.utils.bind(this.createRoomIdOutput, this)
     this.getPlayerHeight = AFRAME.utils.bind(this.getPlayerHeight, this)
 
+    this.socket.on('playerId', this.handlePlayerId)
 
     this.socket.on('fullRoom', this.handleFullRoom)
     this.socket.on('noRoom', this.handleNoRoom)
@@ -69,6 +72,10 @@ AFRAME.registerSystem('networked-player', {
 
     this.socket.on('gameStart', this.handleGameStart)
     this.socket.on('gameEnd', this.handleGameEnd)
+  },
+  handlePlayerId: function(msg) {
+    this.id = msg.id
+    console.log(this.id)
   },
   handleFullRoom: function (msg) {
     console.log('Got socket event: fullRoom', msg)
@@ -109,8 +116,23 @@ AFRAME.registerSystem('networked-player', {
   },
   handleGameStart: function(msg) {
     console.log('game started: ', msg)
+    if(this.lastWinners && this.lastWinners.length > 0) {
+      this.lastWinners.forEach((winnerId) => {
+        const winnerEl = winnerId === this.id
+          ? this.el.querySelector('#camera')
+          : this.el.querySelector(`#head-${winnerId}`)
+        winnerEl.removeAttribute('crown')
+      })
+    }
   },
   handleGameEnd: function(msg) {
+    this.lastWinners = msg.winners;
+    msg.winners.forEach((winnerId) => {
+      const winnerEl = winnerId === this.id
+          ? this.el.querySelector('#playerRig')
+          : this.el.querySelector(`#head-${winnerId}`)
+      winnerEl.setAttribute('crown', true)
+    })
     console.log('game ended: ', msg)
   },
   joinRoom: function (roomId) {

@@ -38,6 +38,7 @@ exports.config = {
     connection(io, socket) {
       const id = socket.id
       log(`connection from ${id}`)
+      socket.emit('playerId', { id })
     },
     logMessage(io, socket, msg) {
       const id = socket.id
