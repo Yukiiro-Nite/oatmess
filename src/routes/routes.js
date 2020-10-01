@@ -75,7 +75,7 @@ exports.config = {
         log(`[${id}] could not join room ${roomId}: room does not exist.`)
       }
 
-      if(room.engine && !room.engine.running) {
+      if(room && room.engine && !room.engine.running) {
         room.engine.start(TPS)
       }
     },

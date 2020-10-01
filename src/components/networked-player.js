@@ -64,6 +64,7 @@ AFRAME.registerSystem('networked-player', {
     this.updatePart = AFRAME.utils.bind(this.updatePart, this)
     this.createRoomIdOutput = AFRAME.utils.bind(this.createRoomIdOutput, this)
     this.getPlayerHeight = AFRAME.utils.bind(this.getPlayerHeight, this)
+    this.setPlayerStatusVisibility = AFRAME.utils.bind(this.setPlayerStatusVisibility, this)
 
     this.socket.on('playerId', this.handlePlayerId)
 
@@ -121,6 +122,8 @@ AFRAME.registerSystem('networked-player', {
   },
   handleGameStart: function(msg) {
     console.log('game started: ', msg)
+    setTimeout(() => this.setPlayerStatusVisibility(false), 500)
+
     if(this.lastWinners && this.lastWinners.length > 0) {
       this.lastWinners.forEach((winnerId) => {
         const winnerEl = winnerId === this.id
@@ -131,6 +134,7 @@ AFRAME.registerSystem('networked-player', {
     }
   },
   handleGameEnd: function(msg) {
+    setTimeout(() => this.setPlayerStatusVisibility(true), 500)
     this.lastWinners = msg.winners;
     msg.winners.forEach((winnerId) => {
       const winnerEl = winnerId === this.id
@@ -232,6 +236,18 @@ AFRAME.registerSystem('networked-player', {
     this.el.systems.camera.activeCameraEl.object3D.getWorldPosition(cameraPosition)
 
     return cameraPosition.y
+  },
+  setPlayerStatusVisibility: function(state) {
+    const switches = this.el.querySelectorAll('.statusSwitch')
+    const indicators = this.el.querySelectorAll('.statusIndicator')
+    const controls = [
+      ...Array.from(switches),
+      ...Array.from(indicators)
+    ]
+
+    controls.forEach((controlEl) => {
+      controlEl.setAttribute('visible', state)
+    })
   }
 });
 

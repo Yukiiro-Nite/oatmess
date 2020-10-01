@@ -6,7 +6,7 @@ const green = '#24571f'
 
 function playerReady(pose, playerId, gameState) {
   const buttonPosition = getOffsetFromPose(pose, { x: 0, y: 1.0, z: -0.4 })
-  const buttonRotation = multiply(pose.rotation, { x: Math.PI / 4, y: 0, z: 0 })
+  const buttonRotation = multiply(pose.rotation, { x: 0, y: 0, z: 0 })
   const indicatorPosition = getOffsetFromPose(pose, { x: 0, y: 2.5, z: 0 })
   const indicatorRotation = multiply(pose.rotation, { x: -Math.PI / 2, y: Math.PI, z: 0 })
 
@@ -37,6 +37,7 @@ const button = (position, rotation, playerId) => ({
     }
   }],
   meta: {
+    class: 'statusSwitch',
     name: `statusSwitch-${playerId}`,
     visible: true
   }
@@ -90,6 +91,7 @@ const indicator = (position, rotation, playerId) => ({
   position,
   rotation,
   meta: {
+    class: 'statusIndicator',
     name: `statusIndicator-${playerId}`,
     button: {
       iconScale: '0.16 0.16 0.16',
