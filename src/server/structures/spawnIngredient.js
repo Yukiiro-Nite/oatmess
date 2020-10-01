@@ -1,9 +1,11 @@
 const apple = require('./apple')
 const banana = require('./banana')
+const sardine = require('./sardine')
 
 const ingredients = [
   apple,
-  banana
+  banana,
+  sardine
 ]
 
 function spawnIngredient(pos, rot) {
