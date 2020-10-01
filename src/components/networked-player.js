@@ -9,7 +9,12 @@ AFRAME.registerSystem('networked-player', {
           width="0.15"
           depth="0.3"
           color="orange"
-        ></a-box>
+        >
+          <a-entity
+            class="crownMount"
+            position="0.0 0.15 0.0"
+          ></a-entity>
+        </a-box>
       `)
     },
     rightHand: function (id) {
@@ -119,8 +124,8 @@ AFRAME.registerSystem('networked-player', {
     if(this.lastWinners && this.lastWinners.length > 0) {
       this.lastWinners.forEach((winnerId) => {
         const winnerEl = winnerId === this.id
-          ? this.el.querySelector('#camera')
-          : this.el.querySelector(`#head-${winnerId}`)
+          ? this.el.querySelector('#camera .crownMount')
+          : this.el.querySelector(`#head-${winnerId} .crownMount`)
         winnerEl.removeAttribute('crown')
       })
     }
@@ -129,8 +134,8 @@ AFRAME.registerSystem('networked-player', {
     this.lastWinners = msg.winners;
     msg.winners.forEach((winnerId) => {
       const winnerEl = winnerId === this.id
-          ? this.el.querySelector('#camera')
-          : this.el.querySelector(`#head-${winnerId}`)
+          ? this.el.querySelector('#camera .crownMount')
+          : this.el.querySelector(`#head-${winnerId} .crownMount`)
       winnerEl.setAttribute('crown', true)
     })
     console.log('game ended: ', msg)
@@ -188,9 +193,11 @@ AFRAME.registerSystem('networked-player', {
       const part = partFn(id)
 
       part.addEventListener('object3dset', function (event) {
-        part.removeEventListener('object3dset', this)
-        event.target.object3D.position.copy(msg.position)
-        event.target.object3D.quaternion.copy(msg.quaternion)
+        if(event.target === part) {
+          part.removeEventListener('object3dset', this)
+          event.target.object3D.position.copy(msg.position)
+          event.target.object3D.quaternion.copy(msg.quaternion)
+        }
       })
 
       this.el.appendChild(part)
