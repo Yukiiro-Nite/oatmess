@@ -129,7 +129,7 @@ AFRAME.registerSystem('networked-player', {
     this.lastWinners = msg.winners;
     msg.winners.forEach((winnerId) => {
       const winnerEl = winnerId === this.id
-          ? this.el.querySelector('#playerRig')
+          ? this.el.querySelector('#camera')
           : this.el.querySelector(`#head-${winnerId}`)
       winnerEl.setAttribute('crown', true)
     })
