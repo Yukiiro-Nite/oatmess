@@ -72,21 +72,6 @@ const ready = RapierLoader.then((Rapier) => {
       this.grabJointMap = {}
       this.bodiesToCull = []
 
-
-      // A map containing the current collisions.
-      // bodyId -> bodyId
-      // Used to determing which collision tick handlers need to be called.
-      this.collisions = {}
-
-      // A map of bodyId -> tick fn
-      this.tickHandlers = {}
-      // A map of bodyId -> collision start fn
-      this.collisionStartHandlers = {}
-      // A map of bodyId -> collision tick fn
-      this.collisionTickHandlers = {}
-      // A map of bodyId -> collision end fn
-      this.collisionEndHandlers = {}
-
       return this
     }
 
@@ -112,17 +97,6 @@ const ready = RapierLoader.then((Rapier) => {
       if(this.bodiesToCull.length > 0) {
         this.cullBodies()
       }
-
-      Object.entries(this.tickHandlers).forEach(([bodyId, tickHandler]) => {
-        maybeCall(tickHandler, this, bodyId)
-      })
-
-      Object.entries(this.collisionTickHandlers).forEach(([bodyId, collisionTickHandler]) => {
-        const colliding = this.collisions[bodyId] || {}
-        Object.keys(colliding).forEach((bodyId2) => {
-          maybeCall(collisionTickHandler, this, bodyId, bodyId2)
-        })
-      })
 
       if(this.running) {
         this.currentTimeout = setTimeout(() => this.gameTick(tps), tps)
@@ -166,7 +140,6 @@ const ready = RapierLoader.then((Rapier) => {
 
       this.eventQueue.drainContactEvents((handle1, handle2, started) => {
         worldState.events.push({ handle1, handle2, started })
-        this.updateCollisions(handle1, handle2, started)
       })
 
       this.world.forEachRigidBody((body) => {
@@ -430,8 +403,6 @@ const ready = RapierLoader.then((Rapier) => {
       const colliderCount = body.numColliders()
       let colliderId
 
-      this.removeBodyCollisions(bodyId)
-
       for(let i=0; i < colliderCount; i++){
         colliderId = body.collider(i).handle()
         delete this.meta.collider[colliderId]
@@ -439,10 +410,6 @@ const ready = RapierLoader.then((Rapier) => {
 
       delete this.oldBodyMap[bodyId]
       delete this.meta.body[bodyId]
-      delete this.tickHandlers[bodyId]
-      delete this.collisionStartHandlers[bodyId]
-      delete this.collisionTickHandlers[bodyId]
-      delete this.collisionEndHandlers[bodyId]
 
       this.world.removeRigidBody(body)
       this.emit('removeBody', { id: bodyId })
@@ -456,26 +423,9 @@ const ready = RapierLoader.then((Rapier) => {
         && worldConfig.bodies.map((bodyConfig) => {
           const body = this.createRigidBody(bodyConfig)
           const bodyId = body.handle()
-          maybeCall(bodyConfig.postInit, this, body, Rapier)
 
           if(bodyConfig.name) {
             namedBodies[bodyConfig.name] = body
-          }
-
-          if(isFunction(bodyConfig.tick)) {
-            this.tickHandlers[bodyId] = bodyConfig.tick
-          }
-
-          if(isFunction(bodyConfig.collisionStart)) {
-            this.collisionStartHandlers[bodyId] = bodyConfig.collisionStart
-          }
-
-          if(isFunction(bodyConfig.collisionTick)) {
-            this.collisionTickHandlers[bodyId] = bodyConfig.collisionTick
-          }
-
-          if(isFunction(bodyConfig.collisionEnd)) {
-            this.collisionEndHandlers[bodyId] = bodyConfig.collisionEnd
           }
 
           return bodyId
@@ -500,68 +450,6 @@ const ready = RapierLoader.then((Rapier) => {
       while(this.bodiesToCull.length > 0) {
         this.removeRigidBody(this.bodiesToCull.pop())
       }
-    }
-
-    updateCollisions(handle1, handle2, started) {
-      const collider1 = this.world.getCollider(handle1)
-      const collider2 = this.world.getCollider(handle2)
-      const parent1 = collider1.parent()
-      const parent2 = collider2.parent()
-      const parentHandle1 = parent1.handle()
-      const parentHandle2 = parent2.handle()
-
-      if(started) {
-        this.addCollision(handle1, handle2)
-
-        maybeCall(this.collisionStartHandlers[parentHandle1], this, parentHandle1, parentHandle2)
-        maybeCall(this.collisionStartHandlers[parentHandle2], this, parentHandle2, parentHandle1)
-      } else {
-        this.removeCollision(handle1, handle2)
-
-        maybeCall(this.collisionEndHandlers[parentHandle1], this, parentHandle1, parentHandle2)
-        maybeCall(this.collisionEndHandlers[parentHandle2], this, parentHandle2, parentHandle1)
-      }
-    }
-
-    addCollision(handle1, handle2) {
-      const collider1 = this.world.getCollider(handle1)
-      const collider2 = this.world.getCollider(handle2)
-      const parent1 = collider1.parent()
-      const parent2 = collider2.parent()
-      const parentHandle1 = parent1.handle()
-      const parentHandle2 = parent2.handle()
-
-      this.collisions[parentHandle1] = {
-        ...this.collisions[parentHandle1],
-        [parentHandle2]: true
-      }
-      this.collisions[parentHandle2] = {
-        ...this.collisions[parentHandle2],
-        [parentHandle1]: true
-      }
-    }
-
-    removeCollision(handle1, handle2) {
-      const collider1 = this.world.getCollider(handle1)
-      const collider2 = this.world.getCollider(handle2)
-      const parent1 = collider1.parent()
-      const parent2 = collider2.parent()
-      const parentHandle1 = parent1.handle()
-      const parentHandle2 = parent2.handle()
-
-      delete this.collisions[parentHandle1][parentHandle2]
-      delete this.collisions[parentHandle2][parentHandle1]
-    }
-
-    removeBodyCollisions(bodyId) {
-      const bodyColliding = this.collisions[bodyId] || {}
-      Object.keys(bodyColliding).forEach((bodyId2) => {
-        delete this.collisions[bodyId2][bodyId]
-        maybeCall(this.collisionEndHandlers[bodyId], this, bodyId, bodyId2)
-        maybeCall(this.collisionEndHandlers[bodyId2], this, bodyId2, bodyId)
-      })
-
-      delete this.collisions[bodyId]
     }
   }
 

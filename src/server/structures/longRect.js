@@ -1,6 +1,6 @@
 const defaultRotation = { x: 0, y: 0, z: 0, w: 0 }
 
-function banana(pos, rot = defaultRotation) {
+function longRect(pos, rot = defaultRotation) {
   return {
     type: 'dynamic',
     position: { x: pos.x, y: pos.y, z: pos.z },
@@ -13,15 +13,13 @@ function banana(pos, rot = defaultRotation) {
       density: 1,
       meta: {
         class: 'grabbable',
-        removable: true
+        color: '#8e8e00'
       },
     }],
     meta: {
-      grabbable: true,
-      'gltf-model': '#banana',
-      taste: 1
+      grabbable: true
     },
   }
 }
 
-module.exports = banana
+module.exports = longRect

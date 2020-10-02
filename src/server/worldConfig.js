@@ -1,32 +1,36 @@
 const room = require('./structures/room')
+const cube = require('./structures/cube')
+const longRect = require('./structures/longRect')
 
-const extraCubes = new Array(20).fill().map((_, i) => ({
-  type: 'dynamic',
-  position: { x: 1, y: 0.035 + i * 0.07, z: 0 },
+const roomConfig = room(
+  { x: 0, y: 0, z: 0 },
+  { x: 0, y: 0, z: 0, w: 0 },
+  { width: 5, height: 3, depth: 5, thickness: 0.1 }
+)
+
+const tableConfig = {
+  type: 'static',
+  position: { x: 0, y: 1.0, z: -0.4 },
   colliders: [{
     type: 'cuboid',
-    width: 0.07,
-    height: 0.07,
-    depth: 0.07,
-    density: 1,
+    width: 1,
+    height: 0.02,
+    depth: 0.5,
     meta: {
-      class: 'grabbable',
-      removable: true
+      color: '#442a1e'
     },
   }],
-  meta: {
-    grabbable: true,
-    'gltf-model': '#apple'
-  },
-}))
+}
+
+const cubeConfig = cube({ x: -0.25, y: 1.36, z: -0.4 })
+const longRectConfig = longRect({ x: 0.25, y: 1.36, z: -0.4 })
 
 const worldConfig = {
   bodies: [
-    ...room(
-      { x: 0, y: 0, z: 0 },
-      { x: 0, y: 0, z: 0, w: 0 },
-      { width: 5, height: 3, depth: 5, thickness: 0.1 }
-    )
+    ...roomConfig,
+    tableConfig,
+    cubeConfig,
+    longRectConfig
   ],
   joints: []
 }

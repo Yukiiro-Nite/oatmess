@@ -2,8 +2,6 @@
   <head>
     <title>Oatmess</title>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-particle-system-component@1.1.3/dist/aframe-particle-system-component.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
     <script src="/socket.io.js"></script>
     <script src="utils.js"></script>
     <script src="entityUtils.js"></script>
@@ -12,14 +10,7 @@
     <script src="components/networked-player.js"></script>
     <script src="components/physics-server.js"></script>
     <script src="components/button.js"></script>
-    <script src="components/input-panel.js"></script>
-    <script src="components/grid.js"></script>
-    <script src="components/hex-input.js"></script>
-    <script src="components/join-room.js"></script>
-    <script src="components/output.js"></script>
-    <script src="components/room-panel.js"></script>
-    <script src="components/player-ready.js"></script>
-    <script src="components/crown.js"></script>
+    <script src="components/reset-room.js"></script>
   </head>
   <body>
     <a-scene
@@ -30,70 +21,37 @@
     >
       <a-sky color="#16161d"></a-sky>
       <a-assets>
-        <a-asset-item id="joinRoom" src="../assets/joinRoomButton.glb"></a-asset-item>
-        <a-asset-item id="createRoom" src="../assets/createRoomButton.glb"></a-asset-item>
-
-        <a-asset-item id="arrow" src="../assets/arrow.glb"></a-asset-item>
-        <a-asset-item id="checkmark" src="../assets/checkmark.glb"></a-asset-item>
-        <a-asset-item id="clear" src="../assets/clear.glb"></a-asset-item>
-        <a-asset-item id="enter" src="../assets/enter.glb"></a-asset-item>
-        <a-asset-item id="home" src="../assets/home.glb"></a-asset-item>
-        <a-asset-item id="plus" src="../assets/plus.glb"></a-asset-item>
-
-        <a-asset-item id="buttonFrame" src="../assets/buttonFrame.glb"></a-asset-item>
-        <a-asset-item id="icon_0" src="../assets/icon_0.glb"></a-asset-item>
-        <a-asset-item id="icon_1" src="../assets/icon_1.glb"></a-asset-item>
-        <a-asset-item id="icon_2" src="../assets/icon_2.glb"></a-asset-item>
-        <a-asset-item id="icon_3" src="../assets/icon_3.glb"></a-asset-item>
-        <a-asset-item id="icon_4" src="../assets/icon_4.glb"></a-asset-item>
-        <a-asset-item id="icon_5" src="../assets/icon_5.glb"></a-asset-item>
-        <a-asset-item id="icon_6" src="../assets/icon_6.glb"></a-asset-item>
-        <a-asset-item id="icon_7" src="../assets/icon_7.glb"></a-asset-item>
-        <a-asset-item id="icon_8" src="../assets/icon_8.glb"></a-asset-item>
-        <a-asset-item id="icon_9" src="../assets/icon_9.glb"></a-asset-item>
-        <a-asset-item id="icon_A" src="../assets/icon_A.glb"></a-asset-item>
-        <a-asset-item id="icon_B" src="../assets/icon_B.glb"></a-asset-item>
-        <a-asset-item id="icon_C" src="../assets/icon_C.glb"></a-asset-item>
-        <a-asset-item id="icon_D" src="../assets/icon_D.glb"></a-asset-item>
-        <a-asset-item id="icon_E" src="../assets/icon_E.glb"></a-asset-item>
-        <a-asset-item id="icon_F" src="../assets/icon_F.glb"></a-asset-item>
-
-        <a-asset-item id="spawner" src="../assets/spawner.glb"></a-asset-item>
-        <a-asset-item id="conveyor" src="../assets/conveyor.glb"></a-asset-item>
-
-        <a-asset-item id="apple" src="../assets/apple.glb"></a-asset-item>
-        <a-asset-item id="banana" src="../assets/banana.glb"></a-asset-item>
-        <a-asset-item id="sardine" src="../assets/sardine.glb"></a-asset-item>
-
-        <audio id="press" src="../assets/press.wav"></audio>
-
         <a-mixin
           id="buttonStyle"
-          material="color: #2e2d34"
-          sound="src: #press; on: click; volume: 0.05;"
-          animation__click="property: object3D.position.y; from: 0; to: -0.1; dur: 200; startEvents: click;"
-          animation__afterclick="property: object3D.position.y; from: -0.1; to: 0; dur: 200; startEvents: animationcomplete__click;"
+          animation__click="property: object3D.position.z; from: 0; to: -0.02; dur: 200; startEvents: click;"
+          animation__afterclick="property: object3D.position.z; from: -0.02; to: 0; dur: 200; startEvents: animationcomplete__click;"
         ></a-mixin>
       </a-assets>
       <a-plane width="10" height="10" rotation="-90 0 0" material="color:#fed6c1"></a-plane>
 
-      <a-room-panel
-        id="roomPanel"
-        scale="0.05 0.05 0.05"
-        position="0 1.5 -0.3"
-        rotation="45 0 0"
+      <a-entity
+        position="0 1.4 -0.4"
         visible="true"
-      ></a-room-panel>
-
-      <a-hex-input
-        id="hexInput"
-        scale="0.02 0.02 0.02"
-        position="0 1.5 -0.3"
-        rotation="45 0 0"
-        join-room="on: submit;"
-        visible="false"
-      ></a-hex-input>
-
+      >
+        <a-box
+          width="0.4"
+          height="0.1"
+          depth="0.02"
+          color="#16161d"
+          button=""
+          reset-room="on: click;"
+          mixin="buttonStyle"
+        >
+          <a-text
+            position="0 0 0.015"
+            width="1.25"
+            align="center"
+            color="#fffafe"
+            value="Reset Room"
+          ></a-text>
+        </a-box>
+      </a-entity>
+      
       <a-entity id="playerRig">
         <a-entity
           id="camera"
@@ -101,12 +59,7 @@
           look-controls
           wasd-controls
           position="0 1.6 0"
-        >
-          <a-entity
-            class="crownMount"
-            position="0 0.1 0"
-          ></a-entity>
-        </a-entity>
+        ></a-entity>
         <a-entity
           id="leftHand"
           hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"

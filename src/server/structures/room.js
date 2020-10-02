@@ -98,19 +98,7 @@ function room(pos, rot, size, meta = defaultRoomMeta) {
           meta: meta.walls
         }
       ],
-      meta: meta.room,
-      collisionStart: function (body1, body2) {
-        dropTimeouts[body2] = setTimeout(() => {
-          const body = this.world.getRigidBody(body2)
-          if(body) {
-            this.removeRigidBody(body)
-          }
-        }, 3000)
-      },
-      collisionEnd: function (body1, body2) {
-        clearTimeout(dropTimeouts[body2])
-        delete dropTimeouts[body2]
-      }
+      meta: meta.room
     }
   ]
 }

@@ -10,10 +10,6 @@ AFRAME.registerSystem('networked-player', {
           depth="0.3"
           color="orange"
         >
-          <a-entity
-            class="crownMount"
-            position="0.0 0.15 0.0"
-          ></a-entity>
         </a-box>
       `)
     },
@@ -43,57 +39,24 @@ AFRAME.registerSystem('networked-player', {
   init: function () {
     this.socket = io()
 
-    this.handlePlayerId = AFRAME.utils.bind(this.handlePlayerId, this)
-
-    this.handleFullRoom = AFRAME.utils.bind(this.handleFullRoom, this)
-    this.handleNoRoom = AFRAME.utils.bind(this.handleNoRoom, this)
-    this.handleJoinRoomSuccess = AFRAME.utils.bind(this.handleJoinRoomSuccess, this)
-
     this.handlePlayerJoin = AFRAME.utils.bind(this.handlePlayerJoin, this)
     this.handlePlayerUpdate = AFRAME.utils.bind(this.handlePlayerUpdate, this)
     this.handlePlayerLeave = AFRAME.utils.bind(this.handlePlayerLeave, this)
 
-    this.handleGameStart = AFRAME.utils.bind(this.handleGameStart, this)
-    this.handleGameEnd = AFRAME.utils.bind(this.handleGameEnd, this)
-
-    this.joinRoom = AFRAME.utils.bind(this.joinRoom, this)
     this.emitPlayerUpdate = AFRAME.utils.bind(this.emitPlayerUpdate, this)
     this.attachNetworkedPlayer = AFRAME.utils.bind(this.attachNetworkedPlayer, this)
     this.detachNetworkedPlayer = AFRAME.utils.bind(this.detachNetworkedPlayer, this)
     this.createPart = AFRAME.utils.bind(this.createPart, this)
     this.updatePart = AFRAME.utils.bind(this.updatePart, this)
-    this.createRoomIdOutput = AFRAME.utils.bind(this.createRoomIdOutput, this)
     this.getPlayerHeight = AFRAME.utils.bind(this.getPlayerHeight, this)
-    this.setPlayerStatusVisibility = AFRAME.utils.bind(this.setPlayerStatusVisibility, this)
-
-    this.socket.on('playerId', this.handlePlayerId)
-
-    this.socket.on('fullRoom', this.handleFullRoom)
-    this.socket.on('noRoom', this.handleNoRoom)
-    this.socket.on('joinRoomSuccess', this.handleJoinRoomSuccess)
 
     this.socket.on('playerJoin', this.handlePlayerJoin)
     this.socket.on('playerUpdate', this.handlePlayerUpdate)
     this.socket.on('playerLeave', this.handlePlayerLeave)
 
-    this.socket.on('gameStart', this.handleGameStart)
-    this.socket.on('gameEnd', this.handleGameEnd)
-  },
-  handlePlayerId: function(msg) {
-    this.id = msg.id
-    console.log(this.id)
-  },
-  handleFullRoom: function (msg) {
-    console.log('Got socket event: fullRoom', msg)
-  },
-  handleNoRoom: function (msg) {
-    console.log('Got socket event: noRoom', msg)
-  },
-  handleJoinRoomSuccess: function (msg) {
-    this.attachNetworkedPlayer(msg)
-  },
-  handlePlayers: function (msg) {
-    console.log('Got socket event: players', msg)
+    setTimeout(() => {
+      this.attachNetworkedPlayer()
+    }, 100)
   },
   handlePlayerJoin: function (msg) {
     console.log('Got socket event: playerJoin', msg)
@@ -150,36 +113,16 @@ AFRAME.registerSystem('networked-player', {
   emitPlayerUpdate: function (msg) {
     this.socket.emit('playerUpdate', msg)
   },
-  attachNetworkedPlayer: function (msg) {
-    // hide the hex input
-    this.el.querySelector('#hexInput').hide()
-
+  attachNetworkedPlayer: function () {
     // get player parts
-    const playerRig = this.el.querySelector('#playerRig')
     const playerHead = this.el.systems.camera.activeCameraEl
     const playerRightHand = this.el.querySelector('#rightHand')
     const playerLeftHand = this.el.querySelector('#leftHand')
-
-    // set player rig offset
-    playerRig.object3D.position.add(msg.offset.position)
-    playerRig.object3D.rotation.set(
-      msg.offset.rotation.x,
-      msg.offset.rotation.y,
-      msg.offset.rotation.z
-    )
 
     // network player parts
     playerHead && playerHead.setAttribute('networked-player', { part: 'head' })
     playerRightHand && playerRightHand.setAttribute('networked-player', { part: 'rightHand' })
     playerLeftHand && playerLeftHand.setAttribute('networked-player', { part: 'leftHand' })
-
-    // set up player space
-    const outputId = `output-${msg.roomId}`
-    const outputEl = this.createRoomIdOutput(outputId, msg.offset.position, msg.offset.rotation)
-    this.el.appendChild(outputEl)
-
-    const output = this.el.querySelector(`#${outputId}`)
-    output.setAttribute('output', msg.roomId)
   },
   detachNetworkedPlayer: function () {
     const playerHead = this.el.systems.camera.activeCameraEl
@@ -211,44 +154,12 @@ AFRAME.registerSystem('networked-player', {
     part.object3D.position.copy(msg.position)
     part.object3D.quaternion.copy(msg.quaternion)
   },
-  createRoomIdOutput: function(id, pos, rot) {
-    const counterPose = getCounterPose(pos, rot, 0.3)
-    counterPose.position.y += (this.getPlayerHeight() - 0.3)
-
-    const rotation = new AFRAME.THREE.Euler()
-      .setFromQuaternion(counterPose.quaternion)
-      .toVector3()
-      .multiplyScalar(180 / Math.PI)
-    rotation.x += 90
-    
-    return htmlToElement(`
-      <a-entity
-        id="${id}"
-        scale="0.02 0.02 0.02"
-        rotation="${rotation.x} ${rotation.y} ${rotation.z}"
-        position="${counterPose.position.x} ${counterPose.position.y} ${counterPose.position.z}"
-        output=""
-      ></a-entity>
-    `)
-  },
   getPlayerHeight: function() {
     const cameraPosition = new AFRAME.THREE.Vector3()
     this.el.systems.camera.activeCameraEl.object3D.getWorldPosition(cameraPosition)
 
     return cameraPosition.y
   },
-  setPlayerStatusVisibility: function(state) {
-    const switches = this.el.querySelectorAll('.statusSwitch')
-    const indicators = this.el.querySelectorAll('.statusIndicator')
-    const controls = [
-      ...Array.from(switches),
-      ...Array.from(indicators)
-    ]
-
-    controls.forEach((controlEl) => {
-      controlEl.setAttribute('visible', state)
-    })
-  }
 });
 
 AFRAME.registerComponent('networked-player', {
